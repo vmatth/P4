@@ -7,9 +7,17 @@
   <param name="robot_description" command="$(arg urdf_file)" />
   
   <!-- Gazebo model spawner -->
-  <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
-        args="-x 1 -y 0 -z 0 -unpause -urdf -param robot_description -model mobile_base"/>
-  
+
+<group ns="turtlebot1">
+  <node name="spawn_turtlebot_model1" pkg="gazebo_ros" type="spawn_model"
+        args="-x 0 -y 0 -z 0 -unpause -urdf -param /robot_description -model mobile_base"/>
+</group>  
+
+<group ns="turtlebot2">
+  <node name="spawn_turtlebot_model2" pkg="gazebo_ros" type="spawn_model"
+        args="-x 1 -y 0 -z 0 -unpause -urdf -param /robot_description -model mobile_base"/>
+</group>  
+
   <!-- Velocity muxer -->
   <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
   <node pkg="nodelet" type="nodelet" name="cmd_vel_mux"
