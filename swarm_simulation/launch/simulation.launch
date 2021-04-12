@@ -1,0 +1,15 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+
+  <!-- start world -->
+  <node name="gazebo" pkg="gazebo_ros" type="gzserver"
+   args="$(find swarm_simulation)/worlds/house_world.world" respawn="false" output="screen" />
+
+  <!-- Type can be "gzserver" or "debug" -->
+
+  <!-- start gui -->
+  <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
+
+  <!-- include our robots -->
+  <include file="$(find swarm_simulation)/launch/robots.launch"/>
+</launch>
