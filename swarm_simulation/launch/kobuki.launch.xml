@@ -10,12 +10,12 @@
 
 <group ns="turtlebot1">
   <node name="spawn_turtlebot_model1" pkg="gazebo_ros" type="spawn_model"
-        args="-x 0 -y 0 -z 0 -unpause -urdf -param /robot_description -model mobile_base"/>
+        args="-x 0 -y 0 -z 0 -unpause -urdf -param /robot_description -model mobile_base1"/>
 </group>  
 
 <group ns="turtlebot2">
   <node name="spawn_turtlebot_model2" pkg="gazebo_ros" type="spawn_model"
-        args="-x 1 -y 0 -z 0 -unpause -urdf -param /robot_description -model mobile_base"/>
+        args="-x 1 -y 0 -z 0 -unpause -urdf -param /robot_description -model mobile_base2"/>
 </group>  
 
   <!-- Velocity muxer -->
@@ -25,7 +25,4 @@
     <param name="yaml_cfg_file" value="$(find turtlebot_bringup)/param/mux.yaml" />
     <remap from="cmd_vel_mux/output" to="mobile_base/commands/velocity"/>
   </node>
-
-  <!-- Bumper/cliff to pointcloud (not working, as it needs sensors/core messages) -->
-  <include file="$(find turtlebot_bringup)/launch/includes/kobuki/bumper2pc.launch.xml"/>
 </launch>
