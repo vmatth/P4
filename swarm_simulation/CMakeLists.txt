@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  gazebo
 )
 
 ## System dependencies are found with CMake's conventions
@@ -118,12 +119,17 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${GAZEBO_INCLUDE_DIRS}
 )
 
+link_directories(${GAZEBO_LIBRARY_DIRS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
+
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
+#   add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/swarm_simulation.cpp
-# )
+#   )
+add_library(velodyne_plugin SHARED velodyne_plugin.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -157,6 +163,8 @@ add_executable(swarm_simulation src/MulRobTest.cpp)
  ${catkin_LIBRARIES}
 )
 
+target_link_libraries(velodyne_plugin ${GAZEBO_LIBRARIES})
+
 
 #############
 ## Install ##
@@ -176,7 +184,7 @@ add_executable(swarm_simulation src/MulRobTest.cpp)
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
 # install(TARGETS ${PROJECT_NAME}_node
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+# ) 
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
