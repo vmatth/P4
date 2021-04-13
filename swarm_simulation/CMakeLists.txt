@@ -119,17 +119,13 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-  ${GAZEBO_INCLUDE_DIRS}
 )
 
-link_directories(${GAZEBO_LIBRARY_DIRS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
 ## Declare a C++ library
 #   add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/swarm_simulation.cpp
 #   )
-add_library(velodyne_plugin SHARED velodyne_plugin.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -139,7 +135,7 @@ add_library(velodyne_plugin SHARED velodyne_plugin.cpp)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/main.cpp)
+add_executable(main_node src/main.cpp)
 add_executable(swarm_simulation src/MulRobTest.cpp)
 
 ########add_executable(swarm_simulation src/MulRobTest.cpp)#####
@@ -155,7 +151,7 @@ add_executable(swarm_simulation src/MulRobTest.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_node
+ target_link_libraries(main_node
    ${catkin_LIBRARIES}
  )
  
@@ -163,7 +159,6 @@ add_executable(swarm_simulation src/MulRobTest.cpp)
  ${catkin_LIBRARIES}
 )
 
-target_link_libraries(velodyne_plugin ${GAZEBO_LIBRARIES})
 
 
 #############
