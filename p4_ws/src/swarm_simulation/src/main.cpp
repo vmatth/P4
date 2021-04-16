@@ -20,7 +20,7 @@ private:
 
 public:
 
-     Turtlebot(int id){ //Sets up the turtlebot by publishing and subscribing to the robot nodes.
+     Turtlebot(int id){ //Sets up the turtlebot by publishing and subscribing to the robot topics.
         cout << "Setting up turlebot " << id << endl;
     
         stringstream sstm;

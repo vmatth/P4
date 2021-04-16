@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+
+<robot name="turtlebot">
+    <link name="base">
+        <visual>
+            <geometry>
+                <mesh filename="package://gazebo_tests/meshes/turtlebot.STL"/>
+            </geometry>
+        </visual>
+    </link>
+</robot>
+            
