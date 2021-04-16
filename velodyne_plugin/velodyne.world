@@ -17,9 +17,9 @@
       </include>
 
       <!-- Attach the plugin to this model -->
-      <plugin name="velodyne_control" filename="../build/libvelodyne_plugin.so">
+      <plugin name="velodyne_control" filename="libvelodyne_plugin.so">
         <velocity>8</velocity>
-      </plugin>
+      </plugin> 
 
 
     </model>

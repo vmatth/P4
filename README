@@ -1,0 +1,19 @@
+How to build files:
+
+p4_ws:
+
+Run "catkin_make" in the p4_ws directory
+
+velodyne_plugin:
+
+Run "cmake../" in the velodyne_plugin/build directory
+
+Run "make" in same directory
+
+Add the build & models directory path to the environment variable in .bashrc (hidden file in home)
+
+export GAZEBO_PLUGIN_PATH=${GAZEBO_PLUGIN_PATH}:~/P4/velodyne_plugin/build
+export GAZEBO_MODEL_PATH=$HOME/P4/velodyne_plugin/models:$GAZEBO_MODEL_PATH
+
+(Your directory can be different depending on where the P4 folder is located)
+
