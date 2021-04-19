@@ -27,7 +27,7 @@ namespace gazebo{
                 return;
             }
 
-            //Connect to the sensor updat event
+            //Connect to the sensor update event
             this->newLaserScansConnection = this->parentSensor->ConnectUpdated(std::bind(&RayPlugin::OnNewLaserScans, this));
 
             //Make sure the parent sensor is active
