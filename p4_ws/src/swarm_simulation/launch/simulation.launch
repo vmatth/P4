@@ -7,6 +7,7 @@
 
   <!-- Type can be "gzserver" or "debug" -->
 
+
   <!-- start gui -->
   <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
 

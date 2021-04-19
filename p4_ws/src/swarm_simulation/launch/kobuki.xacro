@@ -8,9 +8,12 @@
 
   <xacro:include filename="$(find turtlebot_description)/urdf/turtlebot_common_library.urdf.xacro" />
   <xacro:include filename="$(find kobuki_description)/urdf/kobuki.urdf.xacro" />
-  <xacro:include filename="$(find turtlebot_description)/urdf/stacks/hexagons.urdf.xacro"/>
-  <!--<xacro:include filename="$(find turtlebot_description)/urdf/sensors/kinect.urdf.xacro"/>-->
+  <!--<xacro:include filename="$(find turtlebot_description)/urdf/stacks/hexagons.urdf.xacro"/>-->
+  <xacro:include filename="$(find swarm_simulation)/urdf/velodyne_hexagon.urdf.xacro"/>
   
+  <!--<xacro:include filename="$(find turtlebot_description)/urdf/sensors/kinect.urdf.xacro"/>-->
+  <!-- <xacro:include filename="$(find swarm_simulation)../../../velodyne_plugin/models/velodyne_hdl32/model.urdf.xacro"/> -->
+ 
   <kobuki/>
   <stack_hexagons parent="base_link"/>
   <sensor_kinect  parent="base_link"/>

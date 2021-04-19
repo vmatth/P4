@@ -15,7 +15,7 @@ velodyne_plugin:
 
 Run "cmake ../" in the velodyne_plugin/build directory
 
-Run "make" in same directory
+Run "make" in same directory (Edit: If it doesn't work, then "sudo apt-get install libignition-math2-dev")
 
 Add the build & models directory path to the environment variable in .bashrc (hidden file in home)
 
