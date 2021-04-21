@@ -3,6 +3,8 @@
        Access with slash at the beginning -->
 
   <param name ="robot_description" command="$(find xacro)/xacro.py '$(find swarm_simulation)/launch/kobuki.xacro'" />
+  <!-- Path to our plugins -->
+  <env name="GAZEBO_PLUGIN_PATH" value="$(find swarm_simulation)/../../../velodyne_plugin/build"/>
 
   <!-- BEGIN ROBOT 1-->
    <group ns="turtlebot0">
@@ -14,11 +16,11 @@
   </group>
 
   <!-- BEGIN ROBOT 2-->
-  <!-- <group ns="turtlebot1">
+  <group ns="turtlebot1">
     <param name="tf_prefix" value="robot1_tf" />
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
       <arg name="init_pose" value="-x 1 -y 0 -z 0" />
       <arg name="robot_name"  value="Robot1" />
     </include>
-  </group> -->
+  </group>
 </launch>
