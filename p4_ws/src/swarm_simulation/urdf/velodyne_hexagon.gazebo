@@ -12,7 +12,7 @@
         <!-- <pose>1 2 3 4 5 6</pose> -->
         <!-- Enable visualization to see the rays in the GUI -->
 
-        <pose> 0 1 0 0 0 0 </pose>
+        <pose> 0 0 0 0 0 0 </pose>
 
         <visualize>true</visualize>
     
@@ -32,7 +32,7 @@
             <!-- The horizontal beams -->
             <horizontal>
               <!-- The velodyne has 32 beams(samples) -->
-              <samples>1</samples>
+              <samples>360</samples>
 
               <!-- Resolution is multiplied by samples to determine number of
                   simulated beams vs interpolated beams. See:
@@ -44,7 +44,7 @@
               <min_angle>0</min_angle>
 
               <!-- Maximum angle in radians -->
-              <max_angle>0.1</max_angle>
+              <max_angle>6.28</max_angle>
             </horizontal>
           </scan>
 

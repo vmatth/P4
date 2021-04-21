@@ -125,7 +125,7 @@
     to the parent link (usually base_link). They could be made relative to each
     other, but there is no necessary reason to do so.
   -->
-
+ 
     <xacro:macro name="velodyne" params="parent">
     <joint name="velodyne_joint" type="fixed">
       <origin xyz="0 0 0.4" rpy="0 0 0"/>
@@ -151,12 +151,6 @@
         <inertia ixx="0.003328" ixy="0.0" ixz="0.0" iyy="0.003328" iyz="0.0" izz="0.006656" />
       </inertial>
     </link>
-    
-    <gazebo>
-      <plugin name="velodyne_control" filename="libvelodyne_plugin.so">
-        <velocity>8</velocity>
-      </plugin> 
-    </gazebo>
 
   </xacro:macro>
 
@@ -170,7 +164,7 @@
     <stack_bottom_pole parent="${parent}" number="3" x_loc= "0.120" y_loc="-0.082" z_loc="0.1028"/>
     <stack_bottom_pole parent="${parent}" number="4" x_loc= "0.055" y_loc="-0.120" z_loc="0.1028"/>
     <stack_bottom_pole parent="${parent}" number="5" x_loc="-0.055" y_loc="-0.120" z_loc="0.1028"/>
-    <velodyne parent="${parent}"/>
+     <velodyne parent="${parent}"/>
 
     <joint name="plate_bottom_joint" type="fixed">
       <origin xyz="0.02364 0.0 0.1306" rpy="0 0 0"/>

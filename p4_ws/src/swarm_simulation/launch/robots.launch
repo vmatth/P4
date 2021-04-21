@@ -14,11 +14,11 @@
   </group>
 
   <!-- BEGIN ROBOT 2-->
-  <group ns="turtlebot1">
+  <!-- <group ns="turtlebot1">
     <param name="tf_prefix" value="robot1_tf" />
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
       <arg name="init_pose" value="-x 1 -y 0 -z 0" />
       <arg name="robot_name"  value="Robot1" />
     </include>
-  </group>
+  </group> -->
 </launch>
