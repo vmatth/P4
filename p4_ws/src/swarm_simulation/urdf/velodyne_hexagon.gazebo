@@ -33,6 +33,7 @@
             <horizontal>
               <!-- The velodyne has 32 beams(samples) -->
               <samples>360</samples>
+              
 
               <!-- Resolution is multiplied by samples to determine number of
                   simulated beams vs interpolated beams. See:
