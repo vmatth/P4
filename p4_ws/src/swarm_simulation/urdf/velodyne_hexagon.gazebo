@@ -1,0 +1,77 @@
+    <robot>
+    
+    <gazebo reference="velodyne_link">
+
+    
+
+            <!-- Add a ray sensor, and give it a name -->
+      <sensor type="ray" name="sensor">
+        <!-- Position the ray sensor based on the specification. Also rotate
+            it by 90 degrees around the X-axis so that the <horizontal> rays
+            become vertical -->
+        <!-- <pose>1 2 3 4 5 6</pose> -->
+        <!-- Enable visualization to see the rays in the GUI -->
+
+        <pose> 0 1 0 0 0 0 </pose>
+
+        <visualize>true</visualize>
+    
+        <!-- Set the update rate of the sensor -->
+        <update_rate>30</update_rate>
+        <ray name="head">
+          <noise>
+            <!-- Use gaussian noise -->
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.02</stddev>
+          </noise>
+          <!-- The scan element contains the horizontal and vertical beams.
+              We are leaving out the vertical beams for this tutorial. -->
+          <scan>
+
+            <!-- The horizontal beams -->
+            <horizontal>
+              <!-- The velodyne has 32 beams(samples) -->
+              <samples>1</samples>
+
+              <!-- Resolution is multiplied by samples to determine number of
+                  simulated beams vs interpolated beams. See:
+                  http://sdformat.org/spec?ver=1.6&elem=sensor#horizontal_resolution
+                  -->
+              <resolution>1</resolution>
+
+              <!-- Minimum angle in radians -->
+              <min_angle>0</min_angle>
+
+              <!-- Maximum angle in radians -->
+              <max_angle>0.1</max_angle>
+            </horizontal>
+          </scan>
+
+          <!-- Range defines characteristics of an individual beam -->
+          <range>
+
+            <!-- Minimum distance of the beam -->
+            <min>0.2</min>
+
+            <!-- Maximum distance of the beam -->
+            <max>1.5</max>
+
+            <!-- Linear resolution of the beam -->
+            <resolution>0.02</resolution>
+          </range>
+      </ray>
+        <plugin name="ray_plugin" filename="libray_plugin.so">
+
+        </plugin> 
+
+      </sensor>
+
+
+    </gazebo> 
+
+
+
+
+
+    </robot>

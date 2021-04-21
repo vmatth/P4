@@ -39,6 +39,11 @@ namespace gazebo
       // Store the model pointer for convenience.
       this->model = _model;
 
+    
+      std::string name = _model->GetName();
+
+      std::cout << "Name: " << name << std::endl;
+
       // Get the first joint. We are making an assumption about the model
       // having one joint that is the rotational joint.
       this->joint = _model->GetJoints()[0];
