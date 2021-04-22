@@ -88,7 +88,7 @@ namespace gazebo{
                 }
             }
 
-            std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
+            //std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
 
                 uint32_t id = parentSensor->GetParentId();
 
