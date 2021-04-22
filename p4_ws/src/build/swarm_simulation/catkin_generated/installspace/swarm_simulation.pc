@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: swarm_simulation
+Description: Description of swarm_simulation
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

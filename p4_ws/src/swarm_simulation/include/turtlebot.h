@@ -33,6 +33,8 @@ private:
     Position pos; //The robot's current absolute position
     Position startPos; //The robot's start position
 
+    Position newPoint;
+
     double yaw;
 
     double range;
@@ -62,12 +64,18 @@ public:
     //Calculates a point where the nearest wall is located.
     void CalculateWall(double dist, double angle);
 
+    //Print new point
+    Position GetPoint();
+
     //Constructor
     Turtlebot(int _id, Position _startPos); //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
 
 };
 
 
+Position Turtlebot::GetPoint(){
+    return newPoint;
+}
 
 
 //Updates to robot pos by adding Odometry Position to startPos.
@@ -93,15 +101,19 @@ void Turtlebot::UpdateRotation(double x, double y, double z, double w){
 //Calculates a point where the nearest wall is located.
 void Turtlebot::CalculateWall(double dist, double angle){
     //Calculate wall pos relative to the robot.
-    cout << "Point measured for ROBOT " << id << endl;
+    //cout << "Point measured for ROBOT " << id << endl;
     double xRelative = cos(angle * PI / 180.0) * dist;
     double yRelative = sin(angle * PI / 180.0) * dist;
-    cout << "xRelative: " << xRelative << ", yRelative: " << yRelative << endl;
+    //cout << "xRelative: " << xRelative << ", yRelative: " << yRelative << endl;
     //Calculate global wall pos using the robots rotation.
     //Calculate wall pos relative to the robot.
     double x = cos((angle + yaw) * PI / 180.0) * dist + pos.x;
     double y = sin((angle + yaw) * PI / 180.0) * dist + pos.y;
-    cout << "xGlobal: " << x << ", yGlobal: " << y << endl;
+   // cout << "xGlobal: " << x << ", yGlobal: " << y << endl;
+
+
+   newPoint.x = x;
+   newPoint.y = y;
 }
 
 
@@ -181,6 +193,8 @@ Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by st
 
     //Publish & Subscribe
     cmd_vel_pub = n.advertise<Twist>(Topic("/mobile_base/commands/velocity"), 1); //Publishes 
-    //odom_sub = n.subscribe(Topic("/odom"), 1000, &Turtlebot::odomCallback, this); //Subscribes to turtlebot odometry
-    //range_sub = n.subscribe("/sensor/range", 1000, &Turtlebot::rangeCallback, this); //Subscribes to sensor range
+    odom_sub = n.subscribe(Topic("/odom"), 1000, &Turtlebot::odomCallback, this); //Subscribes to turtlebot odometry
+    range_sub = n.subscribe("/sensor/range", 1000, &Turtlebot::rangeCallback, this); //Subscribes to sensor range
 }
+
+

@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: gazebo_tests
+Description: Description of gazebo_tests
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

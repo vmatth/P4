@@ -1,0 +1,8 @@
+prefix=/home/vini/P4/p4_ws/src/build/devel
+
+Name: swarm_simulation
+Description: Description of swarm_simulation
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
