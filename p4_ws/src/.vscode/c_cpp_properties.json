@@ -10,7 +10,8 @@
                 "/usr/include/**",
                 "${workspaceFolder}/swarm_simulation/include"
             ],
-            "name": "ROS"
+            "name": "ROS",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4
