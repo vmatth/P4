@@ -12,7 +12,7 @@
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
       <arg name="init_pose" value="-x 0 -y 0 -z 0" />
       <arg name="robot_name"  value="Robot0" />
-      <arg name="delay" value="3.0" />
+      <arg name="delay" value="0.1" />
     </include>
   </group>
 
@@ -22,7 +22,7 @@
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
       <arg name="init_pose" value="-x 2 -y 0 -z 0" />
       <arg name="robot_name"  value="Robot1" />
-      <arg name="delay" value="6.0" />
+      <arg name="delay" value="2.0" />
     </include>
   </group>
 
@@ -32,7 +32,7 @@
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
       <arg name="init_pose" value="-x 4 -y 0 -z 0" />
       <arg name="robot_name"  value="Robot2" />
-      <arg name="delay" value="9.0" />
+      <arg name="delay" value="4.0" />
     </include>
   </group>
 </launch>

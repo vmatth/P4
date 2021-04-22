@@ -3,6 +3,7 @@
 #include <vector>
 #include <utility>
 #include <memory>
+#include <math.h>  
 
 #include <ros/ros.h>
 
@@ -14,6 +15,9 @@
 #include "std_msgs/MultiArrayDimension.h"
 #include "std_msgs/Float64MultiArray.h"
 
+#include <tf/transform_datatypes.h>
+
+#define PI 3.14159265
 
 using namespace std;
 using namespace ros;
@@ -37,6 +41,11 @@ private:
     Position pos; //The robot's current absolute position
     Position startPos; //The robot's start position
 
+    double yaw;
+
+    double range;
+    double angle;
+
     int id; //Id so we know which turtlebot this is
 public:
 
@@ -50,31 +59,55 @@ public:
         
         //Update the robot position
         UpdatePos(msg->pose.pose.position.x, msg->pose.pose.position.y);
+
+        UpdateRotation(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
     }
 
     //Callback function that is called each time range is updated
     void rangeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg){
         //ROS_INFO("Seq: [%d]", msg->header.seq);
 
+        //Each turtlebot has a specific id. Ex robot 0 has id 107
         if(id == 0 && msg->data[0] == 107){
-            ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+            //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+            range = msg->data[1];
+            angle = msg->data[2];
+            CalculateWall(msg->data[1], msg->data[2]);
         }
         else if(id == 1 && msg->data[0] == 1751){
-            ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+            //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+            CalculateWall(msg->data[1], msg->data[2]);
         }
         else if(id == 2 && msg->data[0] == 3395){
-            ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+            //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+            CalculateWall(msg->data[1], msg->data[2]);
         }
 
 
-    
+
+        
     }
 
-
+    //Publish a velocity
     void Publish(){
+        if(yaw <= 90){
+            cmd_vel_message.angular.z = 0.4;
+        }
+        else{
+            cmd_vel_message.angular.z = 0;
+        }
+
+        if(range >= 0.5 && yaw >= 90){
+            cmd_vel_message.linear.x = 0.3;
+        }
+        else{
+            cmd_vel_message.linear.x = 0;
+        }
+
+        
         //cout << "Publishing!!!!!" << endl;
-       // cmd_vel_message.angular.z = 1.0;
-        cmd_vel_message.linear.x = 1.0;
+        
+        //cmd_vel_message.linear.x = 1.0;
         cmd_vel_pub.publish(cmd_vel_message);
     }
 
@@ -86,16 +119,47 @@ public:
         return sstm.str();
     }
 
+    //Updates to robot pos by adding Odometry Position to startPos.
     void UpdatePos(double xOdom, double yOdom){
         pos.x = startPos.x + xOdom;
         pos.y = startPos.y + yOdom;
+    }
+
+    //Updates robot rotation using odometry values.
+    void UpdateRotation(double x, double y, double z, double w){
+        //https://answers.ros.org/question/50113/transform-quaternion/
+        //https://gist.github.com/marcoarruda/f931232fe3490b7fa20dbb38da1195ac
+       
+        //Converts from quaternion to degrees
+        tf::Quaternion q(x, y, z, w);
+        tf::Matrix3x3 m(q);
+        double roll, pitch;
+        m.getRPY(roll, pitch, yaw);
+
+        yaw = yaw * 180/PI;
+        /*if(id == 0)
+            std::cout << "Yaw: " << yaw << std::endl;*/
+    }
+
+    //Calculates a point where the nearest wall is located.
+    void CalculateWall(double dist, double angle){
+        //Calculate wall pos relative to the robot.
+        cout << "Point measured for ROBOT " << id << endl;
+        double xRelative = cos(angle * PI / 180.0) * dist;
+        double yRelative = sin(angle * PI / 180.0) * dist;
+        cout << "xRelative: " << xRelative << ", yRelative: " << yRelative << endl;
+        //Calculate global wall pos using the robots rotation.
+        //Calculate wall pos relative to the robot.
+        double x = cos((angle + yaw) * PI / 180.0) * dist + pos.x;
+        double y = sin((angle + yaw) * PI / 180.0) * dist + pos.y;
+        cout << "xGlobal: " << x << ", yGlobal: " << y << endl;
     }
 
     //Constructor
     Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
         ROS_INFO("Setting up turlebot %d", id); 
 
-        //Setup variables
+        //Saves variables to the turtlebot class
         id = _id;
         startPos.x = _startPos.x;
         startPos.y = _startPos.y;
@@ -121,9 +185,9 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0;
-        Position pos1; pos1.x = 2;
-        Position pos2; pos2.x = 4;
+        Position pos0; pos0.x = 0; pos0.y = 0;
+        Position pos1; pos1.x = 2; pos1.y = 0;
+        Position pos2; pos2.x = 4; pos2.y = 0;
 
         robotStartPositions.push_back(pos0);
         robotStartPositions.push_back(pos1);
@@ -141,7 +205,7 @@ namespace TurtlebotManager{
 
     void MoveTurtlebots(){
 
-        //turtlebots[0]->Publish();
+        turtlebots[0]->Publish();
 
         for (int i = 0; i < numRobots; i++){ //Foreach turtlebot in the turtlebot vector
             //turtlebots[i]->Publish();
