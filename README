@@ -26,5 +26,4 @@ export GAZEBO_MODEL_PATH=$HOME/P4/velodyne_plugin/models:$GAZEBO_MODEL_PATH
 
 Try "gazebo velodyne.world --verbose" in new terminal
 
-SImon Pushed!
 
