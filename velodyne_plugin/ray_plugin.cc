@@ -6,6 +6,12 @@
 #include "ros/ros.h"
 #include "std_msgs/Float64.h"
 
+#include "std_msgs/MultiArrayLayout.h"
+#include "std_msgs/MultiArrayDimension.h"
+
+#include "std_msgs/Float64MultiArray.h"
+
+
 namespace gazebo{
 
     class RayPlugin : public SensorPlugin
@@ -14,6 +20,7 @@ namespace gazebo{
         public: RayPlugin(){
             printf("Constructor\n");
         }
+
 
         public: void Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf){
             printf("Load\n");
@@ -37,9 +44,17 @@ namespace gazebo{
             this->node = transport::NodePtr(new transport::Node());
             this->node->Init(_parent->WorldName());
 
+    uint32_t id = _parent->GetParentId();
+
+        std::cout << "Pose: "<< id << std::endl;
+
+
             // Create a topic name
-           // std::string topicName = "~/" + _parent->GetName() + "/range";
-            std::string topicName = "/velodyne/range";
+            //std::string topicName = "/" + _parent->GetParentName() + "/range";
+            std::string topicName = "/" + _parent->GetName() +  "/range";
+
+           
+           // std::string topicName = "/velodyne/range";
 
             // Initialize ros, if it has not already bee initialized.
             if (!ros::isInitialized())
@@ -53,8 +68,9 @@ namespace gazebo{
             this->rosNode.reset(new ros::NodeHandle("gazebo_client"));
 
             ros::NodeHandle n;
-            this->rosPub = n.advertise<std_msgs::Float64>(topicName, 1);
-   
+            this->rosPub = n.advertise<std_msgs::Float64MultiArray>(topicName, 1);
+
+
 
         }
 
@@ -74,11 +90,28 @@ namespace gazebo{
 
             std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
 
-            std_msgs::Float64 newRange;
+                uint32_t id = parentSensor->GetParentId();
 
-            newRange.data = short_dist;
+                std::cout << "Pose: "<< id << std::endl;
 
-            rosPub.publish(newRange);
+            std_msgs::Float64MultiArray array;
+            //Clear array
+            array.data.clear();
+
+            array.data.push_back(id);
+            array.data.push_back(short_dist);
+            array.data.push_back(angle);
+            
+            //Publish array
+            rosPub.publish(array);
+
+            
+            //std_msgs::Float64 newRange;
+
+           // newRange.data = short_dist;
+
+            //rosPub.publish(newRange);
+
         }
 
 
