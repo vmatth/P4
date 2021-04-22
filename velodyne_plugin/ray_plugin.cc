@@ -72,7 +72,7 @@ namespace gazebo{
                 }
             }
 
-            std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
+            //std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
 
             std_msgs::Float64 newRange;
 
