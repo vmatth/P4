@@ -87,12 +87,13 @@ namespace gazebo{
                     angle = i;
                 }
             }
+            
+            uint32_t id = parentSensor->GetParentId();
 
-            //std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
+            std::cout << "Pose: "<< id << std::endl;
 
-                uint32_t id = parentSensor->GetParentId();
+            std::cout << "Range: " << short_dist << " | Angle: " << angle << std::endl;
 
-                std::cout << "Pose: "<< id << std::endl;
 
             std_msgs::Float64MultiArray array;
             //Clear array
