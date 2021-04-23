@@ -6,6 +6,8 @@
     "files.associations": {
         "utility": "cpp",
         "vector": "cpp",
-        "*.ccp": "cpp"
+        "*.ccp": "cpp",
+        "cmath": "cpp",
+        "iostream": "cpp"
     }
 }
