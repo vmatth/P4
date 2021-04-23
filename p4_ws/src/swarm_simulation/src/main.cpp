@@ -39,6 +39,7 @@ namespace TurtlebotManager{
         ROS_INFO("Turtlebots initialized!");
 
         markers.SetupMarker();
+        markers.SetupRobotMarker();
 
         ROS_INFO("Markers initialized");
     }
@@ -56,7 +57,20 @@ namespace TurtlebotManager{
             markers.NewMarker(turtlebots[i]->GetPoint());
         }
     }
-
+    int GetRobotId()
+    {
+        for(int i = 0; i < numRobots; i++)
+        {
+            turtlebots[i];
+        }
+    }
+    void RobotMarker()
+    {
+        for(int i = 0; i < numRobots; i++)
+        {
+            markers.robotMarker(turtlebots[i]->GetPosition(), turtlebots[i]->GetId());    
+        }
+    }
 }
 
 
@@ -79,6 +93,7 @@ int main(int argc, char *argv[])
 
         TurtlebotManager::MoveTurtlebots();
         TurtlebotManager::GetPoints();
+        TurtlebotManager::RobotMarker();
     
         ros::spinOnce(); //Spin for callback functions 
         loop_rate.sleep();

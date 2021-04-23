@@ -32,6 +32,7 @@ private:
 
     Position pos; //The robot's current absolute position
     Position startPos; //The robot's start position
+    Position prevPos;
 
     Position newPoint;
 
@@ -41,6 +42,7 @@ private:
     double angle;
 
     int id; //Id so we know which turtlebot this is
+
 public:
 
     //Callback function that is called each time odometry is updated
@@ -67,6 +69,16 @@ public:
     //Print new point
     Position GetPoint();
 
+    Position GetPosition();
+
+    Position GetStartPos();
+
+    Position GetPrevPosition();
+
+    void calcPrevPos(Position pos);
+
+    int GetId();
+
     //Constructor
     Turtlebot(int _id, Position _startPos); //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
 
@@ -77,6 +89,29 @@ Position Turtlebot::GetPoint(){
     return newPoint;
 }
 
+Position Turtlebot::GetPosition(){
+    return pos;
+}
+
+Position Turtlebot::GetStartPos()
+{
+    return startPos;
+}
+
+Position Turtlebot::GetPrevPosition()
+{
+    return prevPos;
+}
+
+void Turtlebot::calcPrevPos(Position pos)
+{
+    prevPos = pos;
+}
+
+int Turtlebot::GetId()
+{
+    return id;
+}
 
 //Updates to robot pos by adding Odometry Position to startPos.
 void Turtlebot::UpdatePos(double xOdom, double yOdom){
