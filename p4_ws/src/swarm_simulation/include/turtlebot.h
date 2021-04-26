@@ -202,8 +202,7 @@ void Turtlebot::Publish(){
 
     //cout << "Publishing!!!!!" << endl;
 
-    cmd_vel_message.linear.z = 1.0;
-    cmd_vel_pub.publish(cmd_vel_message);
+    //cmd_vel_pub.publish(cmd_vel_message);
 }
 
 
@@ -247,6 +246,8 @@ void Turtlebot::MoveToGoal(Position goalPos){
 
     gamma = alpha - yaw;
 
+    cout << "---------------" << endl;
+
     cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
 
     cout << "RobotPos: ("  << pos.x << ", " << pos.y << ")" << endl;
@@ -267,8 +268,10 @@ void Turtlebot::MoveToGoal(Position goalPos){
         posDifference.x = goalPos.x - pos.x;
         posDifference.y = goalPos.y - pos.y;
         cout << "PosDiffernce: (" << posDifference.x << ", " << posDifference.y << ")" << endl;
-        if(abs(posDifference.x) > 0.1 || abs(posDifference.y > 0.1)){
-            cmd_vel_message.linear.x = 0.5;
+        cout << "PosDiff Abosulte: (" << abs(posDifference.x) << ", " << abs(posDifference.y) << ")" << endl;
+        if((abs(posDifference.x) > 0.1) || (abs(posDifference.y) > 0.1)){
+            cout << "OHAYO" << id << endl;
+            cmd_vel_message.linear.x = 0.3;
         }
         else
             cmd_vel_message.linear.x = 0;

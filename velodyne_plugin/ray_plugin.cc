@@ -76,8 +76,6 @@ namespace gazebo{
 
         public: void OnNewLaserScans(){
 
-            //Range 0, so we get the range for the first ray (as you can have multiple rays)
-
             double short_dist = 100;
             double angle = 0;
             for (int i = 0; i < 360; i ++){

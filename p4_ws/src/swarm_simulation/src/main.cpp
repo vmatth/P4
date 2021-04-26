@@ -47,22 +47,22 @@ namespace TurtlebotManager{
     void MoveTurtlebots(){
 
         Position goalPos;
-        goalPos.x = -5;
-        goalPos.y = -10;
+        goalPos.x = 7;
+        goalPos.y = 5;
         turtlebots[0]->MoveToGoal(goalPos);
         Position goalPos2;
-        goalPos2.x = 15;
-        goalPos2.y = 13;
+        goalPos2.x = 10;
+        goalPos2.y = 6;
         turtlebots[1]->MoveToGoal(goalPos2);
         Position goalPos3;
-        goalPos3.x = 1;
-        goalPos3.y = -1;
+        goalPos3.x = 9;
+        goalPos3.y = 8;
         turtlebots[2]->MoveToGoal(goalPos3);
 
     }
     void GetPoints(){
         for(int i = 0; i < numRobots; i++){
-            markers.NewMarker(turtlebots[i]->GetPoint());
+            markers.NewMarker(turtlebots[i]->GetPoint(), turtlebots[i]->GetId());
         }
     }
     int GetRobotId()

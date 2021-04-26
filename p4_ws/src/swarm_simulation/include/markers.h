@@ -17,7 +17,7 @@ private:
     Publisher robotMarker_pub;
 
 public:
-    void NewMarker(Position pos);
+    void NewMarker(Position pos, int robotId);
     void SetupMarker();
     void robotMarker(Position robotPos, int robotId);
     void SetupRobotMarker();
@@ -43,7 +43,7 @@ Markers::Markers(){
 
 }
 
-void Markers::NewMarker(Position pos)
+void Markers::NewMarker(Position pos, int robotId)
 {
     markerId++;
 
@@ -56,7 +56,7 @@ void Markers::NewMarker(Position pos)
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = pos.x;
     marker.pose.position.y = pos.y;
-    marker.pose.position.z = 1;
+    marker.pose.position.z = 0.1;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -65,12 +65,38 @@ void Markers::NewMarker(Position pos)
     marker.scale.y = 0.5;
     marker.scale.z = 0.5;
     marker.color.a = 1.0; // Don't forget to set the alpha!
-    marker.color.r = 1.0;
-    marker.color.g = 0.0;
-    marker.color.b = 1.0;
+//    marker.color.r = 1.0;
+//    marker.color.g = 0.0;
+//    marker.color.b = 1.0;
     //only if using a MESH_RESOURCE marker type:
     //marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
     marker.lifetime = ros::Duration();
+
+    if (robotId == 0)
+    {
+
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.0;
+
+    } else if (robotId == 1)
+    {
+
+        marker.color.r = 0.0;
+        marker.color.g = 1.0;
+        marker.color.b = 0.0;
+        
+    } else if (robotId == 2)
+    {
+
+        marker.color.r = 0.0;
+        marker.color.g = 0.0;
+        marker.color.b = 1.0;
+        
+    } else 
+    {
+        cout << "Robot does not exist" << endl;
+    }
 
     /*if (vis_pub.getNumSubscribers() < 1)
     {
@@ -90,43 +116,43 @@ void Markers::robotMarker(Position robotPos, int robotId)
     robotMarker.header.frame_id = "map";
     robotMarker.header.stamp = ros::Time();
     robotMarker.ns = "marker";
-    robotMarker.id = markerId;
+    robotMarker.id = robotMarkerId;
     robotMarker.type = visualization_msgs::Marker::SPHERE;
     robotMarker.action = visualization_msgs::Marker::ADD;
     robotMarker.pose.position.x = robotPos.x;
     robotMarker.pose.position.y = robotPos.y;
-    robotMarker.pose.position.z = 1;
+    robotMarker.pose.position.z = 0.1;
     robotMarker.pose.orientation.x = 0.0;
     robotMarker.pose.orientation.y = 0.0;
     robotMarker.pose.orientation.z = 0.0;
     robotMarker.pose.orientation.w = 1.0;
-    robotMarker.scale.x = 0.5;
-    robotMarker.scale.y = 0.5;
-    robotMarker.scale.z = 0.5;
-    robotMarker.color.a = 1.0; // Don't forget to set the alpha!
+    robotMarker.scale.x = 0.2;
+    robotMarker.scale.y = 0.2;
+    robotMarker.scale.z = 0.2;
+    robotMarker.color.a = 0.1; // Don't forget to set the alpha!
 
     if (robotId == 0)
     {
 
         robotMarker.color.r = 1.0;
-        robotMarker.color.g = 0.0;
-        robotMarker.color.b = 0.0;
+        robotMarker.color.g = 0.5;
+        robotMarker.color.b = 0.5;
 
     } else if (robotId == 1)
     {
 
-        robotMarker.color.r = 0.0;
+        robotMarker.color.r = 0.5;
         robotMarker.color.g = 1.0;
-        robotMarker.color.b = 0.0;
+        robotMarker.color.b = 0.5;
         
     } else if (robotId == 2)
     {
 
-        robotMarker.color.r = 0.0;
-        robotMarker.color.g = 0.0;
+        robotMarker.color.r = 0.5;
+        robotMarker.color.g = 0.5;
         robotMarker.color.b = 1.0;
         
-    } else
+    } else 
     {
         cout << "Robot does not exist" << endl;
     }
