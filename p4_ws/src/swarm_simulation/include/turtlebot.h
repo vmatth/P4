@@ -165,6 +165,7 @@ void Turtlebot::odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
     UpdatePos(msg->pose.pose.position.x, msg->pose.pose.position.y);
 
     UpdateRotation(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
+    //ROS_INFO("[%i], (%f, %f)", id, pos.x, pos.y);
 }
 
 void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg){   //Callback function that is called each time range is updated
@@ -197,36 +198,30 @@ string Turtlebot::Topic(string topic){
 }
 
 void Turtlebot::Publish(){
-    if(yaw <= 90){
-        cmd_vel_message.angular.z = 0.4;
-    }
-    else{
-        cmd_vel_message.angular.z = 0;
-    }
-
-    if(range >= 0.5 && yaw >= 90){
-        cmd_vel_message.linear.x = 0.3;
-    }
-    else{
-        cmd_vel_message.linear.x = 0;
-    }
 
 
     //cout << "Publishing!!!!!" << endl;
 
-    //cmd_vel_message.linear.x = 1.0;
+    cmd_vel_message.linear.z = 1.0;
     cmd_vel_pub.publish(cmd_vel_message);
 }
 
 
 //Constructor
 Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
-    ROS_INFO("Setting up turlebot %d", id); 
+    cout << "_id" << _id << endl;
+    
+    ROS_INFO("Setting up turlebot %d", _id); 
 
     //Saves variables to the turtlebot class
     id = _id;
     startPos.x = _startPos.x;
     startPos.y = _startPos.y;
+    pos.x = startPos.x;
+    pos.y = startPos.y;
+    yaw = 0;
+
+    ROS_INFO("Turtlebot spawned at: (%f, %f) | Yaw: [%f]", startPos.x, startPos.y, yaw);
 
     //Publish & Subscribe
     cmd_vel_pub = n.advertise<Twist>(Topic("/mobile_base/commands/velocity"), 1); //Publishes 
@@ -250,35 +245,54 @@ void Turtlebot::MoveToGoal(Position goalPos){
 
     alpha = atan2(relativeGoaly, relativeGoalx) * 57.2957795;
 
-    //yaw = 10;
     gamma = alpha - yaw;
 
     cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
 
     cout << "RobotPos: ("  << pos.x << ", " << pos.y << ")" << endl;
 
-    cout << "alpha: " << alpha << endl;
+    cout << "Alpha (Angle to point): " << alpha << endl; //Vinklen fra (0,0) til punktet
 
-    cout << "Yaw: " << yaw << endl;
+    cout << "Robot Yaw: " << yaw << endl; //Robottens vinkel
 
-    cout << "Gamma: " << gamma << endl;
+    cout << "Gamma (Angles to turn): " << gamma << endl; //forskel i vinklerne
 
+    cout << "Gamma (Rads): " << (gamma/180 * PI) << endl; //forskel i vinklerne
 
-    if (gamma <0){
-        if(yaw >= gamma){
-        cmd_vel_message.angular.z = -0.4;
+    cmd_vel_message.angular.z = gamma/180 * PI;
+
+    //If the robots angle is in the margin (Rotated correctly)
+    if(gamma < 2 && gamma > -2){
+        Position posDifference; 
+        posDifference.x = goalPos.x - pos.x;
+        posDifference.y = goalPos.y - pos.y;
+        cout << "PosDiffernce: (" << posDifference.x << ", " << posDifference.y << ")" << endl;
+        if(abs(posDifference.x) > 0.1 || abs(posDifference.y > 0.1)){
+            cmd_vel_message.linear.x = 0.5;
         }
-        else{
-            cmd_vel_message.angular.z = 0;
-        }
-    }else if(gamma >=0){
-        if(yaw <= gamma){
-        cmd_vel_message.angular.z = 0.4;
-        }
-        else{
-            cmd_vel_message.angular.z = 0;
-        }
+        else
+            cmd_vel_message.linear.x = 0;
     }
+    else{
+        cmd_vel_message.linear.x = 0;
+    }
+
+
+    // if (gamma <0){
+    //     if(yaw >= gamma){
+    //     cmd_vel_message.angular.z = -0.4;
+    //     }
+    //     else{
+    //         cmd_vel_message.angular.z = 0;
+    //     }
+    // }else if(gamma >=0){
+    //     if(yaw <= gamma){
+    //     cmd_vel_message.angular.z = 0.4;
+    //     }
+    //     else{
+    //         cmd_vel_message.angular.z = 0;
+    //     }
+    // }
     
 
     //cout << "Publishing!!!!!" << endl;

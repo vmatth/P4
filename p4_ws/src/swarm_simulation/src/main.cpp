@@ -21,9 +21,9 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0; pos0.x = 0; pos0.y = 0;
-        Position pos1; pos1.x = 2; pos1.y = 0;
-        Position pos2; pos2.x = 4; pos2.y = 0;
+        Position pos0; pos0.x = 7; pos0.y = 9.5;
+        Position pos1; pos1.x = 9; pos1.y = 9.5;
+        Position pos2; pos2.x = 11; pos2.y = 9.5;
 
         robotStartPositions.push_back(pos0);
         robotStartPositions.push_back(pos1);
@@ -50,10 +50,15 @@ namespace TurtlebotManager{
         goalPos.x = -5;
         goalPos.y = -10;
         turtlebots[0]->MoveToGoal(goalPos);
+        Position goalPos2;
+        goalPos2.x = 15;
+        goalPos2.y = 13;
+        turtlebots[1]->MoveToGoal(goalPos2);
+        Position goalPos3;
+        goalPos3.x = 1;
+        goalPos3.y = -1;
+        turtlebots[2]->MoveToGoal(goalPos3);
 
-        for (int i = 0; i < numRobots; i++){ //Foreach turtlebot in the turtlebot vector
-            //turtlebots[i]->Publish();
-        }
     }
     void GetPoints(){
         for(int i = 0; i < numRobots; i++){
@@ -82,7 +87,6 @@ namespace TurtlebotManager{
 int main(int argc, char *argv[])
 {
 
-
     init(argc, argv, "Swarm_Robots");
     //Wait until ros is initialized before creating a nodehandle.
     ROS_INFO("Hello World");
@@ -92,8 +96,10 @@ int main(int argc, char *argv[])
     //Main loop
     Rate loop_rate(10);
 //    markers_sub();
+
     while (ok())
     {
+
 
         TurtlebotManager::MoveTurtlebots();
         TurtlebotManager::GetPoints();
