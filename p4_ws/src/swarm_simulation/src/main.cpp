@@ -46,7 +46,10 @@ namespace TurtlebotManager{
 
     void MoveTurtlebots(){
 
-        turtlebots[0]->Publish();
+        Position goalPos;
+        goalPos.x = -5;
+        goalPos.y = -10;
+        turtlebots[0]->MoveToGoal(goalPos);
 
         for (int i = 0; i < numRobots; i++){ //Foreach turtlebot in the turtlebot vector
             //turtlebots[i]->Publish();
@@ -78,6 +81,7 @@ namespace TurtlebotManager{
 
 int main(int argc, char *argv[])
 {
+
 
     init(argc, argv, "Swarm_Robots");
     //Wait until ros is initialized before creating a nodehandle.

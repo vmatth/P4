@@ -79,6 +79,8 @@ public:
 
     int GetId();
 
+    void MoveToGoal(Position goalPos);
+
     //Constructor
     Turtlebot(int _id, Position _startPos); //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
 
@@ -232,4 +234,56 @@ Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by st
     range_sub = n.subscribe("/sensor/range", 1000, &Turtlebot::rangeCallback, this); //Subscribes to sensor range
 }
 
+// move to goal
+void Turtlebot::MoveToGoal(Position goalPos){
+    double alpha, relativeGoalx, relativeGoaly, gamma, beta;
+
+    double RobotX = pos.x;
+    double RobotY = pos.y;
+
+    double GoalX = goalPos.x;
+    double GoalY = goalPos.y;
+
+    
+    relativeGoalx = GoalX-RobotX;
+    relativeGoaly = GoalY-RobotY;
+
+    alpha = atan2(relativeGoaly, relativeGoalx) * 57.2957795;
+
+    //yaw = 10;
+    gamma = alpha - yaw;
+
+    cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
+
+    cout << "RobotPos: ("  << pos.x << ", " << pos.y << ")" << endl;
+
+    cout << "alpha: " << alpha << endl;
+
+    cout << "Yaw: " << yaw << endl;
+
+    cout << "Gamma: " << gamma << endl;
+
+
+    if (gamma <0){
+        if(yaw >= gamma){
+        cmd_vel_message.angular.z = -0.4;
+        }
+        else{
+            cmd_vel_message.angular.z = 0;
+        }
+    }else if(gamma >=0){
+        if(yaw <= gamma){
+        cmd_vel_message.angular.z = 0.4;
+        }
+        else{
+            cmd_vel_message.angular.z = 0;
+        }
+    }
+    
+
+    //cout << "Publishing!!!!!" << endl;
+
+    //cmd_vel_message.linear.x = 1.0;
+    cmd_vel_pub.publish(cmd_vel_message);
+}
 
