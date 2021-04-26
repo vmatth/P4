@@ -84,6 +84,59 @@ void Markers::NewMarker(Position pos)
 
 void Markers::robotMarker(Position robotPos, int robotId)
 {
+    robotMarkerId++;
+
+    visualization_msgs::Marker robotMarker;
+    robotMarker.header.frame_id = "map";
+    robotMarker.header.stamp = ros::Time();
+    robotMarker.ns = "marker";
+    robotMarker.id = markerId;
+    robotMarker.type = visualization_msgs::Marker::SPHERE;
+    robotMarker.action = visualization_msgs::Marker::ADD;
+    robotMarker.pose.position.x = robotPos.x;
+    robotMarker.pose.position.y = robotPos.y;
+    robotMarker.pose.position.z = 1;
+    robotMarker.pose.orientation.x = 0.0;
+    robotMarker.pose.orientation.y = 0.0;
+    robotMarker.pose.orientation.z = 0.0;
+    robotMarker.pose.orientation.w = 1.0;
+    robotMarker.scale.x = 0.5;
+    robotMarker.scale.y = 0.5;
+    robotMarker.scale.z = 0.5;
+    robotMarker.color.a = 1.0; // Don't forget to set the alpha!
+
+    if (robotId == 0)
+    {
+
+        robotMarker.color.r = 1.0;
+        robotMarker.color.g = 0.0;
+        robotMarker.color.b = 0.0;
+
+    } else if (robotId == 1)
+    {
+
+        robotMarker.color.r = 0.0;
+        robotMarker.color.g = 1.0;
+        robotMarker.color.b = 0.0;
+        
+    } else if (robotId == 2)
+    {
+
+        robotMarker.color.r = 0.0;
+        robotMarker.color.g = 0.0;
+        robotMarker.color.b = 1.0;
+        
+    } else
+    {
+        cout << "Robot does not exist" << endl;
+    }
+
+    robotMarker.lifetime = ros::Duration();
+
+    robotMarker_pub.publish(robotMarker);
+
+
+/* TESTING SITE
    // robotMarkerId = markerId;
     robotMarkerId++;
 //    Position startPos;
@@ -97,14 +150,18 @@ void Markers::robotMarker(Position robotPos, int robotId)
     robotpoints.id = robotlines.id = robotMarkerId;
     robotpoints.type = visualization_msgs::Marker::POINTS;
     robotlines.type = visualization_msgs::Marker::LINE_STRIP;
-    robotpoints.action = robotlines.action = visualization_msgs::Marker::ADD;
+    robotpoints.action = visualization_msgs::Marker::ADD;
+    robotlines.action = visualization_msgs::Marker::ADD;
     robotpoints.pose.position.x = robotPos.x;
     robotpoints.pose.position.y = robotPos.y;
-    robotpoints.pose.position.z = 1;
-    robotpoints.pose.orientation.x = robotlines.pose.orientation.x = 0.0;
-    robotpoints.pose.orientation.y = robotlines.pose.orientation.y = 0.0;
-    robotpoints.pose.orientation.z = robotlines.pose.orientation.z = 0.0;
-    robotpoints.pose.orientation.w = robotlines.pose.orientation.w = 1.0;
+    robotpoints.pose.position.z = 0;
+    robotlines.pose.position.x = robotpoints.pose.position.x;
+    robotlines.pose.position.y = robotpoints.pose.position.y;
+    robotlines.pose.position.z = robotpoints.pose.position.z;
+//    robotpoints.pose.orientation.x = robotlines.pose.orientation.x = 0.0;
+ //   robotpoints.pose.orientation.y = robotlines.pose.orientation.y = 0.0;
+  //  robotpoints.pose.orientation.z = robotlines.pose.orientation.z = 0.0;
+//    robotpoints.pose.orientation.w = robotlines.pose.orientation.w = 1.0;
     robotpoints.scale.x = 0.1;
     robotpoints.scale.y = 0.1;
     robotlines.scale.x = 0.2; 
@@ -120,7 +177,7 @@ void Markers::robotMarker(Position robotPos, int robotId)
 
         robotlines.color.r = 1.0;
         robotlines.color.g = 0.0;
-        robotlines.color.b = 0.0;
+        robotlines.color.b = 1.0;
     } else if (robotId == 1)
     {
         robotpoints.color.r = 0.0;
@@ -152,7 +209,7 @@ void Markers::robotMarker(Position robotPos, int robotId)
         geometry_msgs::Point p;
         p.x = robotPos.x;
         p.y = robotPos.y;
-        p.z = 1;
+        p.z = 0;
 
         robotpoints.points.push_back(p);
         robotlines.points.push_back(p);
@@ -166,7 +223,9 @@ void Markers::robotMarker(Position robotPos, int robotId)
     robotpoints.lifetime = ros::Duration();
     robotlines.lifetime = ros::Duration();
 
-    robotMarker_pub.publish(robotpoints);
     robotMarker_pub.publish(robotlines);
-//    prevPos = robotPos;
+    robotMarker_pub.publish(robotpoints);
+//    robotMarker_pub.publish(robotlines);
+//    prevPos = robotPos; 
+                                */
 }
