@@ -41,20 +41,9 @@ namespace TurtlebotManager{
     }
 
     void MoveTurtlebots(){
-
-        Position goalPos;
-        goalPos.x = 7;
-        goalPos.y = 5;
-        turtlebots[0]->MoveToGoal(goalPos);
-        Position goalPos2;
-        goalPos2.x = 10;
-        goalPos2.y = 6;
-        turtlebots[1]->MoveToGoal(goalPos2);
-        Position goalPos3;
-        goalPos3.x = 9;
-        goalPos3.y = 8;
-        turtlebots[2]->MoveToGoal(goalPos3);
-
+        for(int i = 0; i < numRobots; i++){
+            turtlebots[i]->Move();
+        }
     }
 }
 
@@ -100,12 +89,16 @@ namespace MarkersManager{
     {
         for(int i = 0; i < TurtlebotManager::numRobots; i++)
         {
+            usleep(1000); //Wait 1 ms so rviz can follow
             markers.RobotMarker(TurtlebotManager::turtlebots[i]->GetPosition(), TurtlebotManager::turtlebots[i]->GetId());    
         }
     }
 
     void DrawMLine(){
-
+        Position startPos, goalPos;
+        startPos.x = 1; startPos.y = 1;
+        markers.MLine(startPos, goalPos); //Remember to change start and goal pos
+        cout << "Drawing MLine" << endl;
     }
 
 
@@ -124,13 +117,21 @@ int main(int argc, char *argv[])
     Rate loop_rate(10);
 //    markers_sub();
 
+    MarkersManager::InitializeMarkers();
+    loop_rate.sleep();
     MarkersManager::DrawMLine();
 
+    Position newPos;
+    newPos.x = 6;
+    newPos.y = 0;
+    TurtlebotManager::turtlebots[0]->MoveToGoal(newPos);
+    
     while (ok())
     {
-        TurtlebotManager::MoveTurtlebots();
-        MarkersManager::DrawPoints();
         MarkersManager::DrawRobotMarkers();
+        TurtlebotManager::MoveTurtlebots();
+        MarkersManager::DrawPoints(); //todo create callback function for get points
+        
     
         ros::spinOnce(); //Spin for callback functions 
         loop_rate.sleep();

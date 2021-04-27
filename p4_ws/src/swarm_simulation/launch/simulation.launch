@@ -1,12 +1,12 @@
 <launch>
   <param name="/use_sim_time" value="true" />
-
+  <arg name="world" default="Office"/>
   
 
 
   <!-- start world -->
   <node name="gazebo" pkg="gazebo_ros" type="gzserver"
-   args="$(find swarm_simulation)/worlds/Office.world" respawn="false" output="screen" />
+   args="$(find swarm_simulation)/worlds/$(arg world).world" respawn="false" output="screen" />
 
   <!-- Type can be "gzserver" or "debug" -->
 
