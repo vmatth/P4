@@ -19,8 +19,6 @@ namespace TurtlebotManager{
 
     vector<std::unique_ptr<Turtlebot>> turtlebots;
 
-    Markers markers;
-
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
@@ -40,37 +38,6 @@ namespace TurtlebotManager{
         }
 
         ROS_INFO("Turtlebots initialized!");
-
-        markers.SetupMarker();
-        markers.SetupRobotMarker();
-        markers.SetupCellMarker();
-
-        ROS_INFO("Markers initialized");   
-
-        //Create the superarea, subarea and cells
-        SuperArea superArea(20, 9, 0.2);
-
-        ROS_INFO("Super Area Initialized!");
-
-        sleep(7);
-
-        //Create marker for each cell
-        cout << "Number of sub Areas:" << superArea.GetNumSubAreas() << endl;
-        cout << "Number of cells: " << superArea.GetNumCells() << endl;
-        int oooo = 0;
-        for(int i = 0; i < superArea.GetNumSubAreas(); i++){
-            for(int j = 0; j < superArea.GetNumCells(); j++){
-                usleep(2000); //Small delay between each marker so rviz can follow     
-                markers.CellMarker(superArea.GetSubArea(i).cells[j].GetPosition());
-                cout << "Added cell at: (" << superArea.GetSubArea(i).cells[j].GetPosition().x << ", " << superArea.GetSubArea(i).cells[j].GetPosition().y << ")" << endl;
-            }
-            
-        }
-
-
-        ROS_INFO("Marker for cells initialized!");
-
-        ROS_INFO("Grids initialized");
     }
 
     void MoveTurtlebots(){
@@ -89,25 +56,59 @@ namespace TurtlebotManager{
         turtlebots[2]->MoveToGoal(goalPos3);
 
     }
-    void GetPoints(){
-        for(int i = 0; i < numRobots; i++){
-            markers.NewMarker(turtlebots[i]->GetPoint(), turtlebots[i]->GetId());
+}
+
+namespace MarkersManager{
+    Markers markers;
+
+    void InitializeMarkers(){
+        markers.SetupMarker();
+       // markers.SetupRobotMarker();
+       // markers.SetupCellMarker();
+
+        ROS_INFO("Markers initialized");   
+
+        //Create the superarea, subarea and cells
+        SuperArea superArea(20, 9, 0.2);
+
+        ROS_INFO("Super Area Initialized!");
+
+
+       /* sleep(7);
+
+        //Create marker for each cell
+        cout << "Number of sub Areas:" << superArea.GetNumSubAreas() << endl;
+        cout << "Number of cells: " << superArea.GetNumCells() << endl;
+        int oooo = 0;
+        for(int i = 0; i < superArea.GetNumSubAreas(); i++){
+            for(int j = 0; j < superArea.GetNumCells(); j++){
+                usleep(2000); //Small delay between each marker so rviz can follow     
+                markers.CellMarker(superArea.GetSubArea(i).cells[j].GetPosition());
+                cout << "Added cell at: (" << superArea.GetSubArea(i).cells[j].GetPosition().x << ", " << superArea.GetSubArea(i).cells[j].GetPosition().y << ")" << endl;
+            }
+            
+        }*/
+    }
+
+    void DrawPoints(){
+        for(int i = 0; i < TurtlebotManager::numRobots; i++){
+            markers.NewMarker(TurtlebotManager::turtlebots[i]->GetPoint(), TurtlebotManager::turtlebots[i]->GetId());
         }
     }
-    int GetRobotId()
+
+    void DrawRobotMarkers()
     {
-        for(int i = 0; i < numRobots; i++)
+        for(int i = 0; i < TurtlebotManager::numRobots; i++)
         {
-            turtlebots[i];
+            markers.RobotMarker(TurtlebotManager::turtlebots[i]->GetPosition(), TurtlebotManager::turtlebots[i]->GetId());    
         }
     }
-    void RobotMarker()
-    {
-        for(int i = 0; i < numRobots; i++)
-        {
-            markers.RobotMarker(turtlebots[i]->GetPosition(), turtlebots[i]->GetId());    
-        }
+
+    void DrawMLine(){
+
     }
+
+
 }
 
 int main(int argc, char *argv[])
@@ -123,11 +124,13 @@ int main(int argc, char *argv[])
     Rate loop_rate(10);
 //    markers_sub();
 
+    MarkersManager::DrawMLine();
+
     while (ok())
     {
         TurtlebotManager::MoveTurtlebots();
-        TurtlebotManager::GetPoints();
-        TurtlebotManager::RobotMarker();
+        MarkersManager::DrawPoints();
+        MarkersManager::DrawRobotMarkers();
     
         ros::spinOnce(); //Spin for callback functions 
         loop_rate.sleep();

@@ -13,6 +13,7 @@ private:
     uint64_t markerId = 0;
     uint64_t robotMarkerId = 0;
     uint64_t cellMarkerId = 0;
+    uint64_t mLinePointId = 0;
 
     Publisher vis_pub;
     Publisher robotMarker_pub;
@@ -25,6 +26,7 @@ public:
     void SetupRobotMarker();
     void CellMarker(Position cellPos);
     void SetupCellMarker();
+    void MLine(Position startPos, Position goalPos);
     Markers();
 };
 
@@ -32,9 +34,9 @@ public:
 void Markers::SetupMarker(){
     NodeHandle node_handle;
 
-    vis_pub = node_handle.advertise<visualization_msgs::Marker>("/visualization_marker/wall", 1);
+    vis_pub = node_handle.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
 }
-
+/*
 //Creates the topic visualization_marker/robotMarker
 void Markers::SetupRobotMarker(){
     NodeHandle node_handle_robot;
@@ -47,7 +49,7 @@ void Markers::SetupCellMarker(){
     NodeHandle node_handle_cell;
 
     cellMarker_pub = node_handle_cell.advertise<visualization_msgs::Marker>("/visualization_marker/cell", 1);
-}
+}*/
 
 //Constructor
 Markers::Markers(){
@@ -67,7 +69,7 @@ void Markers::NewMarker(Position pos, int robotId)
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = pos.x;
     marker.pose.position.y = pos.y;
-    marker.pose.position.z = 0.1;
+    marker.pose.position.z = 0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -132,7 +134,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
     robotMarker.action = visualization_msgs::Marker::ADD;
     robotMarker.pose.position.x = robotPos.x;
     robotMarker.pose.position.y = robotPos.y;
-    robotMarker.pose.position.z = 0.1;
+    robotMarker.pose.position.z = 0;
     robotMarker.pose.orientation.x = 0.0;
     robotMarker.pose.orientation.y = 0.0;
     robotMarker.pose.orientation.z = 0.0;
@@ -140,7 +142,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
     robotMarker.scale.x = 0.2;
     robotMarker.scale.y = 0.2;
     robotMarker.scale.z = 0.2;
-    robotMarker.color.a = 0.2; // Don't forget to set the alpha!
+    robotMarker.color.a = 0.1; // Don't forget to set the alpha!
 
     if (robotId == 0)
     {
@@ -170,101 +172,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
 
     robotMarker.lifetime = ros::Duration();
 
-    robotMarker_pub.publish(robotMarker);
-
-
-/* TESTING SITE
-   // robotMarkerId = markerId;
-    robotMarkerId++;
-//    Position startPos;
-//    Position prevPos;
-
-    visualization_msgs::Marker robotpoints, robotlines;
-    robotpoints.header.frame_id = robotlines.header.frame_id = "map";
-
-    robotpoints.header.stamp = robotlines.header.stamp = ros::Time();
-    robotpoints.ns = robotlines.ns = "robot_marker";
-    robotpoints.id = robotlines.id = robotMarkerId;
-    robotpoints.type = visualization_msgs::Marker::POINTS;
-    robotlines.type = visualization_msgs::Marker::LINE_STRIP;
-    robotpoints.action = visualization_msgs::Marker::ADD;
-    robotlines.action = visualization_msgs::Marker::ADD;
-    robotpoints.pose.position.x = robotPos.x;
-    robotpoints.pose.position.y = robotPos.y;
-    robotpoints.pose.position.z = 0;
-    robotlines.pose.position.x = robotpoints.pose.position.x;
-    robotlines.pose.position.y = robotpoints.pose.position.y;
-    robotlines.pose.position.z = robotpoints.pose.position.z;
-//    robotpoints.pose.orientation.x = robotlines.pose.orientation.x = 0.0;
- //   robotpoints.pose.orientation.y = robotlines.pose.orientation.y = 0.0;
-  //  robotpoints.pose.orientation.z = robotlines.pose.orientation.z = 0.0;
-//    robotpoints.pose.orientation.w = robotlines.pose.orientation.w = 1.0;
-    robotpoints.scale.x = 0.1;
-    robotpoints.scale.y = 0.1;
-    robotlines.scale.x = 0.2; 
-//    robotmarker.scale.z = 0.5;
-    robotpoints.color.a = 1.0; // Don't forget to set the alpha!
-    robotlines.color.a = 1.0; // Don't forget to set the alpha!
-
-    if (robotId == 0)
-    {
-        robotpoints.color.r = 1.0;
-        robotpoints.color.g = 0.0;
-        robotpoints.color.b = 0.0;
-
-        robotlines.color.r = 1.0;
-        robotlines.color.g = 0.0;
-        robotlines.color.b = 1.0;
-    } else if (robotId == 1)
-    {
-        robotpoints.color.r = 0.0;
-        robotpoints.color.g = 1.0;
-        robotpoints.color.b = 0.0;
-        
-        robotlines.color.r = 0.0;
-        robotlines.color.g = 1.0;
-        robotlines.color.b = 0.0;
-    } else if (robotId == 2)
-    {
-        robotpoints.color.r = 0.0;
-        robotpoints.color.g = 0.0;
-        robotpoints.color.b = 1.0;
-        
-        robotlines.color.r = 0.0;
-        robotlines.color.g = 0.0;
-        robotlines.color.b = 1.0;
-    } else
-    {
-        cout << "Robot does not exist" << endl;
-    }
-    
-    for (uint64_t i = 0; i < 1000; ++i)
-    {
-//        float y = 5 * sin(f + i / 100.0f * 2 * M_PI);
-//        float z = 5 * cos(f + i / 100.0f * 2 * M_PI);
-   
-        geometry_msgs::Point p;
-        p.x = robotPos.x;
-        p.y = robotPos.y;
-        p.z = 0;
-
-        robotpoints.points.push_back(p);
-        robotlines.points.push_back(p);
-  
-        // The line list needs two points for each line
-//        line_list.points.push_back(p);
-//        p.z += 1.0;
-//        line_list.points.push_back(p);
-    }
-
-    robotpoints.lifetime = ros::Duration();
-    robotlines.lifetime = ros::Duration();
-
-    robotMarker_pub.publish(robotlines);
-    robotMarker_pub.publish(robotpoints);
-//    robotMarker_pub.publish(robotlines);
-//    prevPos = robotPos; 
-                                */
+    vis_pub.publish(robotMarker);
 }
 
 void Markers::CellMarker(Position cellPos)
@@ -296,5 +204,38 @@ void Markers::CellMarker(Position cellPos)
 
     marker.lifetime = ros::Duration();
 
-    cellMarker_pub.publish(marker);
+    vis_pub.publish(marker);
+}
+
+void Markers::MLine(Position startPos, Position goalPos)
+{
+    mLinePointId++;
+
+    visualization_msgs::Marker mLineMarkerPoints, mLineMarkerLine;
+    mLineMarkerPoints.header.frame_id = "map";
+    mLineMarkerPoints.header.stamp = ros::Time();
+    mLineMarkerPoints.ns = "marker";
+    mLineMarkerPoints.id = mLinePointId;
+    mLineMarkerPoints.type = visualization_msgs::Marker::POINTS;
+    mLineMarkerPoints.action = visualization_msgs::Marker::ADD;
+    mLineMarkerPoints.pose.position.x = startPos.x;
+    mLineMarkerPoints.pose.position.y = startPos.y;
+    mLineMarkerPoints.pose.position.z = 0;
+    mLineMarkerPoints.pose.orientation.x = 0.0;
+    mLineMarkerPoints.pose.orientation.y = 0.0;
+    mLineMarkerPoints.pose.orientation.z = 0.0;
+    mLineMarkerPoints.pose.orientation.w = 1.0;
+    mLineMarkerPoints.scale.x = 0.1;
+    mLineMarkerPoints.scale.y = 0.1;
+    mLineMarkerPoints.scale.z = 0.1;
+    mLineMarkerPoints.color.a = 0.7; // Don't forget to set the alpha!
+
+    mLineMarkerPoints.color.r = 1.0;
+    mLineMarkerPoints.color.g = 1.0;
+    mLineMarkerPoints.color.b = 1.0;
+
+    mLineMarkerPoints.lifetime = ros::Duration();
+
+    vis_pub.publish(mLineMarkerPoints);
+
 }
