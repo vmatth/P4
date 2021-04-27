@@ -140,7 +140,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
     robotMarker.scale.x = 0.2;
     robotMarker.scale.y = 0.2;
     robotMarker.scale.z = 0.2;
-    robotMarker.color.a = 0.1; // Don't forget to set the alpha!
+    robotMarker.color.a = 0.2; // Don't forget to set the alpha!
 
     if (robotId == 0)
     {

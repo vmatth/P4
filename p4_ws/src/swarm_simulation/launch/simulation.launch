@@ -16,4 +16,8 @@
 
   <!-- include our robots -->
   <include file="$(find swarm_simulation)/launch/robots.launch"/>
+
+  <!-- Start rviz with configuration -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find swarm_simulation)/config/TurtleTest.rviz"/>
+
 </launch>
