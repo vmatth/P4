@@ -13,6 +13,8 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 
+#include <markers.h>
+
 
 using namespace std;
 
@@ -38,6 +40,7 @@ public:
     Cell(double cellSize, Position pos){
         grid.size = cellSize;
         grid.pos = pos;
+
     }
 
     Position GetPosition(){
@@ -59,7 +62,7 @@ public:
     }
     
     //Constructor for Sub Areas. Creates cells inside each subarea.
-    SubArea(int size, Position pos, double cellSize, Index _index){
+    SubArea(double size, Position pos, double cellSize, Index _index){
         grid.size = size;
         grid.pos = pos;
         index = _index;
@@ -68,14 +71,13 @@ public:
         //cout << "Creating new Cell with size: " << cellSize << endl;
 
         //cout << "Cell Size: " << cellSize << endl;
-        
         int numCells = (size / cellSize) * (size / cellSize); 
 
        // cout << "Number of cells: " << numCells << endl;
 
         for(int y = 0; y < sqrt(numCells); y++){
             for(int x = 0; x < sqrt(numCells); x++){
-                //cout << "(x: " << x << ", y: " << y << ")";
+                //cout << "(x: " << x << ", y: " << y << ")" << endl;
 
                 Position newPos;
                 newPos.x = (x * cellSize) + (cellSize/2) + grid.pos.x;
@@ -84,10 +86,11 @@ public:
                 Cell cell(cellSize, newPos);
 
                 cells.push_back(cell);
-
-                //cout << " NewPos: (" << newPos.x << ", " << newPos.y << ")" << endl;
+                
             }
         }
+
+
     }
 
     // Returns start position of specific sub area
@@ -102,14 +105,13 @@ private:
     vector<SubArea> subAreas;
 
 public:
-    //Super Area constructor. Creates SubAreas inside
+    //Super Area constructor. Creates SubAreas inside. numSubAreas can be 2², 3², 4² ...
     SuperArea(int size, int numSubAreas, double cellSize){
         cout << "Creating new SuperArea with size: " << size << endl;
         grid.size = size;
 
         double subAreaSize = grid.size / sqrt(numSubAreas);
-       // cout << "SubAreaSize: " << subAreaSize << endl;
-        //numSubAreas can be 2², 3², 4² ...
+        cout << "Sub Area Size:  " << subAreaSize << endl;
 
         for(int y = 0; y < sqrt(numSubAreas); y++){
             for(int x = 0; x < sqrt(numSubAreas); x++){
@@ -173,6 +175,18 @@ public:
 
         return nearestCell.GetPosition();
         
+    }
+
+    int GetNumSubAreas(){
+        return subAreas.size();
+    }
+
+    int GetNumCells(){
+        return subAreas[0].cells.size();
+    }
+
+    SubArea& GetSubArea(int index){
+        return subAreas[index];
     }
 
     

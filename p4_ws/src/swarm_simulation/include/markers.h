@@ -12,15 +12,19 @@ class Markers{
 private:
     uint64_t markerId = 0;
     uint64_t robotMarkerId = 0;
+    uint64_t cellMarkerId = 0;
 
     Publisher vis_pub;
     Publisher robotMarker_pub;
+    Publisher cellMarker_pub;
 
 public:
     void NewMarker(Position pos, int robotId);
     void SetupMarker();
-    void robotMarker(Position robotPos, int robotId);
+    void RobotMarker(Position robotPos, int robotId);
     void SetupRobotMarker();
+    void CellMarker(Position cellPos);
+    void SetupCellMarker();
     Markers();
 };
 
@@ -36,6 +40,13 @@ void Markers::SetupRobotMarker(){
     NodeHandle node_handle_robot;
 
     robotMarker_pub = node_handle_robot.advertise<visualization_msgs::Marker>("/visualization_marker/robot", 1);
+}
+
+//Creates the topic visualization_marker/robotMarker
+void Markers::SetupCellMarker(){
+    NodeHandle node_handle_cell;
+
+    cellMarker_pub = node_handle_cell.advertise<visualization_msgs::Marker>("/visualization_marker/cell", 1);
 }
 
 //Constructor
@@ -108,7 +119,7 @@ void Markers::NewMarker(Position pos, int robotId)
     vis_pub.publish(marker);
 }
 
-void Markers::robotMarker(Position robotPos, int robotId)
+void Markers::RobotMarker(Position robotPos, int robotId)
 {
     robotMarkerId++;
 
@@ -254,4 +265,36 @@ void Markers::robotMarker(Position robotPos, int robotId)
 //    robotMarker_pub.publish(robotlines);
 //    prevPos = robotPos; 
                                 */
+}
+
+void Markers::CellMarker(Position cellPos)
+{
+    cellMarkerId++;
+
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time();
+    marker.ns = "marker";
+    marker.id = cellMarkerId;
+    marker.type = visualization_msgs::Marker::CUBE;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.pose.position.x = cellPos.x;
+    marker.pose.position.y = cellPos.y;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
+    marker.color.a = 0.7; // Don't forget to set the alpha!
+
+    marker.color.r = 1.0;
+    marker.color.g = 1.0;
+    marker.color.b = 1.0;
+
+    marker.lifetime = ros::Duration();
+
+    cellMarker_pub.publish(marker);
 }

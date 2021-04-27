@@ -2,7 +2,10 @@
 
 #include <turtlebot.h>
 
+#include <grid.h>
+
 #include <markers.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace ros;
@@ -40,8 +43,34 @@ namespace TurtlebotManager{
 
         markers.SetupMarker();
         markers.SetupRobotMarker();
+        markers.SetupCellMarker();
 
-        ROS_INFO("Markers initialized");
+        ROS_INFO("Markers initialized");   
+
+        //Create the superarea, subarea and cells
+        SuperArea superArea(20, 9, 0.2);
+
+        ROS_INFO("Super Area Initialized!");
+
+        sleep(7);
+
+        //Create marker for each cell
+        cout << "Number of sub Areas:" << superArea.GetNumSubAreas() << endl;
+        cout << "Number of cells: " << superArea.GetNumCells() << endl;
+        int oooo = 0;
+        for(int i = 0; i < superArea.GetNumSubAreas(); i++){
+            for(int j = 0; j < superArea.GetNumCells(); j++){
+                usleep(2000); //Small delay between each marker so rviz can follow     
+                markers.CellMarker(superArea.GetSubArea(i).cells[j].GetPosition());
+                cout << "Added cell at: (" << superArea.GetSubArea(i).cells[j].GetPosition().x << ", " << superArea.GetSubArea(i).cells[j].GetPosition().y << ")" << endl;
+            }
+            
+        }
+
+
+        ROS_INFO("Marker for cells initialized!");
+
+        ROS_INFO("Grids initialized");
     }
 
     void MoveTurtlebots(){
@@ -76,13 +105,10 @@ namespace TurtlebotManager{
     {
         for(int i = 0; i < numRobots; i++)
         {
-            markers.robotMarker(turtlebots[i]->GetPosition(), turtlebots[i]->GetId());    
+            markers.RobotMarker(turtlebots[i]->GetPosition(), turtlebots[i]->GetId());    
         }
     }
 }
-
-
-
 
 int main(int argc, char *argv[])
 {
@@ -99,8 +125,6 @@ int main(int argc, char *argv[])
 
     while (ok())
     {
-
-
         TurtlebotManager::MoveTurtlebots();
         TurtlebotManager::GetPoints();
         TurtlebotManager::RobotMarker();
