@@ -15,6 +15,7 @@
 #include "std_msgs/Float64MultiArray.h"
 
 #include <string.h>
+#include <states.h>
 
 using namespace std;
 using namespace ros;
@@ -39,19 +40,20 @@ private:
     Position newPoint;
     Position goalPos; //Saves the point where the robot will move towards
 
-    double yaw;
+    double yaw, goalYaw;
 
-    double range;
-    double angle;
+    double range, angle;
 
     int id; //Id so we know which turtlebot this is
-
-    bool moving = false; //Moving towards goalPos
-    bool turning; //Turning towards 2 deg of the goalPos margin (unused)
 
     int firstRobotId;
 
     bool dontTurn = false;
+
+    MovementState movementState;
+
+    MovementState nextState; //State after finishing a turn
+
 
 public:
 
@@ -95,6 +97,8 @@ public:
     void MoveToGoal(Position goalPos);
 
     void GoalReached(); //Called when the turtlebot reaches goalPos.
+
+    void GoalYawReached();
 
     void Move(); //Moves the robot directly to a "goalPos"
 
@@ -158,6 +162,10 @@ void Turtlebot::UpdateRotation(double x, double y, double z, double w){
     m.getRPY(roll, pitch, yaw);
 
     yaw = yaw * 180/PI;
+    if (yaw < 0)
+    {
+        yaw = 360 + yaw;
+    }
 }
 
 //Calculates a point where the nearest wall is located.
@@ -190,35 +198,70 @@ void Turtlebot::CalculateWall(double dist, double angle){
 void Turtlebot::AngleCalc(Position point, double angle, double dist){
     if(dontTurn)
         return;
-    if(moving == true) //Only check when robot is moving
+    if(movementState == direct || movementState == wall) //Only check when robot is moving
     {
         if(dist <= 0.5){ //Only check when the wall is close
             cout << "Angle: " << angle << endl;
-            if(angle <= 15 && angle >= 0 || angle >=345 && angle <=360) //If the angle is under 10 deg, then the point is near the robot's trajectory
+            if(angle <= 30 && angle >= 0 || angle >=330 && angle <=360) //If the angle is under 10 deg, then the point is near the robot's trajectory
             {   
                 cout << "You about to hit something" << endl;
 
                 //Quik Maffs
-                //Rotates the robot by -90 degrees (right)
-                Position newPos;
-                newPos.x = cos((-90 + yaw + angle) * PI / 180.0);
-                newPos.y = sin((-90 + yaw + angle) * PI / 180.0);
+                //Rotates the robot by -90 degrees (right) in respet to the wall
+                // Position newPos;
+                // newPos.x = cos((-90 + yaw + angle) * PI / 180.0);
+                // newPos.y = sin((-90 + yaw + angle) * PI / 180.0);
 
-                PrintPosition(newPos, "New Pos: ");
+                // cout << "Turn the robot to (global): " << -90 + yaw + angle << endl;
+                // cout << "Turtlebot yaw: " << yaw << endl;
 
-                //Adds the robot's current pos to newPos
-                newPos.x = newPos.x + pos.x;
-                newPos.y = newPos.y + pos.y;
+                // //Adds the robot's current pos to newPos
+                // newPos.x = newPos.x + pos.x;
+                // newPos.y = newPos.y + pos.y;
 
-                goalPos.x = newPos.x;
-                goalPos.y = newPos.y;
+                // PrintPosition(newPos, "New Pos: ");
 
-                dontTurn = true;
+                // goalPos.x = newPos.x;
+                // goalPos.y = newPos.y;
 
-            }else 
+                goalYaw = -90 + yaw + angle;
+                cout << "Goal Yaw: " << goalYaw;
+
+                movementState = turning;
+                nextState = wall;
+            }
+            else 
             {
                 cout << "The coast is clear" << endl;
             }
+        }
+    }
+    if(movementState == wall){
+        if(angle <= 95 && angle >= 85) //If the angle is close to 90 deg, then the point is near left to the robot
+        { 
+            cout << "Angle: " << angle << endl;
+            if(dist <= 0.5) //Only check when the wall is close
+            {  
+                cout << "Wall to the left of the turtlebot!" << endl;
+                //Find a new point that is in front of the turtlebot so it moves along the wall
+                Position pointInFront;
+                pointInFront.x = pos.x + cos(yaw * PI/180.0);
+                pointInFront.y = pos.y + sin(yaw * PI/180.0);
+
+                //Update goalPos to the point in front of the turtlebot
+                goalPos.x = pointInFront.x;
+                goalPos.y = pointInFront.y;
+            }
+        }
+        if(angle > 130 || angle < 85){  
+            cout << "CURRENT YAW: " << yaw << endl; 
+            goalYaw = 90 + yaw;
+            cout << "Goal Yaw: " << goalYaw;
+            cout << "sdfgfgftghgrshhhhfdhgfghfhghfhghfhhfhghfghfghfhf" << endl;
+            movementState = turning;
+            nextState = direct;
+            goalPos.x = 6;
+            goalPos.y = 0; //lmao
         }
     }
 }
@@ -309,20 +352,27 @@ Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by st
 void Turtlebot::MoveToGoal(Position _goalPos){
     goalPos = _goalPos;
     cout << "Started moving turtlebot [" << id << "]" << " from " << "(" << pos.x << ", " << pos.y << ") " " to (" << goalPos.x << ", " << goalPos.y << ")" << endl;
-    moving = true; //Allows the Move() function to start
+    //moving = true; //Allows the Move() function to start
+    movementState = direct;
 
 }
 
 void Turtlebot::GoalReached(){
     cout << "The goal has been reached by turtlebot [" << id << "]" << endl;
-    moving = false;
+    movementState = idle;
 }
+
+void Turtlebot::GoalYawReached(){
+    cout << "The yaw has been reached by turtlebot [" << id << "]" << endl;
+    movementState = nextState;
+}
+
 
 
 // Moves directly to a new point (No obstacle pathfinding)
 void Turtlebot::Move(){
     //Only move the turtlebot when moving == true
-    if(moving){
+    if(movementState == direct || movementState == wall){
         double alpha, relativeGoalx, relativeGoaly, gamma, beta;
 
         relativeGoalx = goalPos.x-pos.x;
@@ -389,6 +439,45 @@ void Turtlebot::Move(){
         else{
             cmd_vel_message.linear.x = 0;
         }
+
+        //Publish linear and rotation 
+        cmd_vel_pub.publish(cmd_vel_message);
+    }
+    else if(movementState == turning){
+        //Alpha is always the shortest angle to the goal. E.g: 270 deg = -90
+        //This is a problem when the goal is 180 deg, as it switches from 180 deg to -180 deg
+
+        //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
+        if(goalYaw < 0){
+            cout << "----------------" << endl;
+            cout << "Negative alpha: " << goalYaw << endl;
+            double positiveAlpha = goalYaw + 360;
+            cout << "Positive alpha: " << positiveAlpha << endl;
+            cout << "Current Yaw:" << yaw << endl;
+    
+            double positiveDifference = abs(positiveAlpha - yaw);
+            double negativeDifference = abs(goalYaw - yaw);
+            cout << "Positive Dif:" << positiveDifference << endl;
+            cout << "Negative Dif:" << negativeDifference << endl;
+            if(positiveDifference < negativeDifference){
+                goalYaw = positiveAlpha; //Swap negative alpha with positive
+            }
+        }
+    
+        cout << "YAW: " << yaw << endl;
+        cout << "GOAL YAW:" << goalYaw << endl;
+
+        double gamma = goalYaw - yaw;
+        cout << "Gamma: " << gamma << endl;
+
+        if(gamma < 1 && gamma > -1){
+            GoalYawReached();
+        }
+
+        //If the robots angle is in the margin (Rotated correctly)
+        cmd_vel_message.angular.z = gamma/180 * PI;
+
+        cmd_vel_message.linear.x = 0;
 
         //Publish linear and rotation 
         cmd_vel_pub.publish(cmd_vel_message);

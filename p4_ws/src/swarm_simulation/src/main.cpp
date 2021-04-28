@@ -81,6 +81,7 @@ namespace MarkersManager{
 
     void DrawPoints(){
         for(int i = 0; i < TurtlebotManager::numRobots; i++){
+            usleep(1000);//Wait 1 ms so rviz can follow
             markers.NewMarker(TurtlebotManager::turtlebots[i]->GetPoint(), TurtlebotManager::turtlebots[i]->GetId());
         }
     }
@@ -94,11 +95,14 @@ namespace MarkersManager{
         }
     }
 
-    void DrawMLine(){
-        Position startPos, goalPos;
-        startPos.x = 1; startPos.y = 1;
-        markers.MLine(startPos, goalPos); //Remember to change start and goal pos
+    void DrawMLine(int ID, Position goalPos)
+    {
+        //Position startPos
+        //startPos.x = 1; startPos.y = 1;
+        markers.MLine(TurtlebotManager::turtlebots[ID]->GetPosition(), goalPos, ID); //Remember to change start and goal pos
         cout << "Drawing MLine" << endl;
+        //cout << "StartPos: (" << TurtlebotManager::turtlebots[ID]->GetPosition().x << "," <<TurtlebotManager::turtlebots[ID]->GetPosition().y << ")"<< endl;
+        //cout << "goalPos: (" << goalPos.x << "," << goalPos.y << ")"<< endl;
     }
 
 
@@ -119,12 +123,13 @@ int main(int argc, char *argv[])
 
     MarkersManager::InitializeMarkers();
     loop_rate.sleep();
-    MarkersManager::DrawMLine();
+
 
     Position newPos;
     newPos.x = 6;
     newPos.y = 0;
     TurtlebotManager::turtlebots[0]->MoveToGoal(newPos);
+    MarkersManager::DrawMLine(0, newPos);
     
     while (ok())
     {

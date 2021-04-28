@@ -59,6 +59,7 @@ public:
 
     double getsubGridSize(){
         return grid.size;
+        
     }
     
     //Constructor for Sub Areas. Creates cells inside each subarea.

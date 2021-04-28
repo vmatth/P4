@@ -29,7 +29,7 @@ public:
     void SetupRobotMarker();
     void CellMarker(Position cellPos);
     void SetupCellMarker();
-    void MLine(Position startPos, Position goalPos);
+    void MLine(Position startPos, Position goalPos, int robotId);
     Markers();
 };
 
@@ -61,7 +61,6 @@ Markers::Markers(){
 
 void Markers::NewMarker(Position pos, int robotId)
 {
-    cout << "New Marker!" << endl;
     markerId++;
 
     visualization_msgs::Marker marker;
@@ -204,7 +203,7 @@ void Markers::CellMarker(Position cellPos)
     vis_pub.publish(marker);
 }
 
-void Markers::MLine(Position startPos, Position goalPos)
+void Markers::MLine(Position startPos, Position goalPos, int robotId)
 {
     mLinePointId++;
     mLineLineId++;
@@ -216,8 +215,8 @@ void Markers::MLine(Position startPos, Position goalPos)
     mLineMarkerPoints.id = mLinePointId;
     mLineMarkerPoints.type = visualization_msgs::Marker::POINTS;
     mLineMarkerPoints.action = visualization_msgs::Marker::ADD;
-    mLineMarkerPoints.pose.position.x = startPos.x;
-    mLineMarkerPoints.pose.position.y = startPos.y;
+    mLineMarkerPoints.pose.position.x = 0;
+    mLineMarkerPoints.pose.position.y = 0;
     mLineMarkerPoints.pose.position.z = 0;
     mLineMarkerPoints.pose.orientation.x = 0.0;
     mLineMarkerPoints.pose.orientation.y = 0.0;
@@ -228,10 +227,6 @@ void Markers::MLine(Position startPos, Position goalPos)
     mLineMarkerPoints.scale.z = 0.15;
     mLineMarkerPoints.color.a = 1.0; // Don't forget to set the alpha!
 
-    mLineMarkerPoints.color.r = 1.0;
-    mLineMarkerPoints.color.g = 0.0;
-    mLineMarkerPoints.color.b = 1.0;
-
     mLineMarkerPoints.lifetime = ros::Duration();
 
     /************** LINE MARKER SETUP*****************/
@@ -241,8 +236,8 @@ void Markers::MLine(Position startPos, Position goalPos)
     mLineMarkerLine.id = mLinePointId;
     mLineMarkerLine.type = visualization_msgs::Marker::LINE_STRIP;
     mLineMarkerLine.action = visualization_msgs::Marker::ADD;
-    mLineMarkerLine.pose.position.x = startPos.x;
-    mLineMarkerLine.pose.position.y = startPos.y;
+    mLineMarkerLine.pose.position.x = 0;
+    mLineMarkerLine.pose.position.y = 0;
     mLineMarkerLine.pose.position.z = 0;
 //    mLineMarkerLine.pose.orientation.x = 0.0;
 //    mLineMarkerLine.pose.orientation.y = 0.0;
@@ -253,10 +248,48 @@ void Markers::MLine(Position startPos, Position goalPos)
 //    mLineMarkerLine.scale.z = 1.0;
     mLineMarkerLine.color.a = 1.0; // Don't forget to set the alpha!
 
+    //If statement her
+    if (robotId == 0)
+    {
+
+        mLineMarkerPoints.color.r = 1.0;
+        mLineMarkerPoints.color.g = 0.0;
+        mLineMarkerPoints.color.b = 0.0;
+
+        mLineMarkerLine.color.r = 1.0;
+        mLineMarkerLine.color.g = 0.0;
+        mLineMarkerLine.color.b = 0.0;
+
+    } else if (robotId == 1)
+    {
+
+        mLineMarkerPoints.color.r = 0.0;
+        mLineMarkerPoints.color.g = 1.0;
+        mLineMarkerPoints.color.b = 0.0;
+
+        mLineMarkerLine.color.r = 0.0;
+        mLineMarkerLine.color.g = 1.0;
+        mLineMarkerLine.color.b = 0.0;
+        
+    } else if (robotId == 2)
+    {
+        mLineMarkerPoints.color.r = 0.0;
+        mLineMarkerPoints.color.g = 0.0;
+        mLineMarkerPoints.color.b = 1.0;
+
+        mLineMarkerLine.color.r = 1.0;
+        mLineMarkerLine.color.g = 0.0;
+        mLineMarkerLine.color.b = 1.0;
+    }
+/*
+    mLineMarkerPoints.color.r = 0.0;
+    mLineMarkerPoints.color.g = 1.0;
+    mLineMarkerPoints.color.b = 0.0;
+
     mLineMarkerLine.color.r = 1.0;
     mLineMarkerLine.color.g = 0.0;
     mLineMarkerLine.color.b = 1.0;
-
+*/
     mLineMarkerLine.lifetime = ros::Duration();
 
     for (uint32_t i = 0; i < 2; ++i)
