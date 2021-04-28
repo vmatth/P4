@@ -23,6 +23,16 @@ using namespace geometry_msgs;
 
 #define PI 3.14159265
 
+
+//Contains information about how the robot will move. (E.g turn in place or move towards a goal Position)
+struct Movement{
+    MovementType movementType;
+    Position goalPos;
+    double goalRotation;
+    TurnType turnType;
+    bool fixRelative; //Used to add + yaw to goalRotation, so it is relative. Must only be added once, so this bool tracks it.
+};
+
 class Turtlebot{
 
 private:
@@ -53,6 +63,8 @@ private:
     MovementState movementState;
 
     MovementState nextState; //State after finishing a turn
+
+    list<Movement> movements; //A list of all the movements the turtlebot will perform. After finished one movement, the next will be performed.
 
 
 public:
@@ -102,9 +114,12 @@ public:
 
     void Move(); //Moves the robot directly to a "goalPos"
 
-    void ChangeGoal(Position _goalPos); //Change the coordinates of goalPos.
-
     void PrintPoisition(Position pos);
+
+    //Creates a new Movement struct with given variables. The movement is pushed into the "movements" list
+    void NewMovement(MovementType, Position);
+
+    void NewMovement(MovementType, double, TurnType);
 
     //Constructor
     Turtlebot(int _id, Position _startPos); //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
@@ -226,6 +241,10 @@ void Turtlebot::AngleCalc(Position point, double angle, double dist){
 
                 goalYaw = -90 + yaw + angle;
                 cout << "Goal Yaw: " << goalYaw;
+
+                //TODO
+                //Cancel all movements. (Empty movements list)
+                //Create NewMovement that turns -90 deg.
 
                 movementState = turning;
                 nextState = wall;
@@ -349,6 +368,33 @@ Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by st
     range_sub = n.subscribe("/sensor/range", 1000, &Turtlebot::rangeCallback, this); //Subscribes to sensor range
 }
 
+//Creates a new Movement struct with given variables. The movement is pushed into the "movements" list
+void Turtlebot::NewMovement(MovementType _movementType, Position _goalPos){
+    cout << "New Movement Command has been given to [" << id << "]" << " of type: Traverse " << endl;
+    Movement m;
+    m.movementType = _movementType;
+    m.goalPos = _goalPos;
+
+    movements.push_back(m);
+}
+
+//Creates a new Movement with type "turn". Relative 90 will move the turtlebot 90 deg relative to the robot (turns left). While false, turtlebot will move to 90 deg globally
+void Turtlebot::NewMovement(MovementType _movementType, double _goalRotation, TurnType _turnType){
+    cout << "New Movement Command has been given to [" << id << "]" << " (" << _goalRotation;
+    Movement m;
+    m.movementType = _movementType;
+    m.goalRotation = _goalRotation;
+    m.turnType = _turnType;
+
+    if(_turnType == relative){
+        cout << ", relative)" << endl;
+    }
+    else
+        cout << ", absolute)" << endl;
+
+    movements.push_back(m);
+}
+
 void Turtlebot::MoveToGoal(Position _goalPos){
     goalPos = _goalPos;
     cout << "Started moving turtlebot [" << id << "]" << " from " << "(" << pos.x << ", " << pos.y << ") " " to (" << goalPos.x << ", " << goalPos.y << ")" << endl;
@@ -368,11 +414,130 @@ void Turtlebot::GoalYawReached(){
 }
 
 
-
-// Moves directly to a new point (No obstacle pathfinding)
+//Moves the turtlebot using the "movements" list. Will move towards the first index of the movements list.
 void Turtlebot::Move(){
+
+
+    //Check if "movements" has anything
+    if(!movements.empty()){
+        //If movementype is turn
+        if(movements.front().movementType == turn){
+
+            //Gamma is the difference from the current yaw and the goalyaw. The robot will use gamma to find out how much to move with.
+            double gamma;
+
+            if(movements.front().turnType == relative){
+                cout << "Turn Type: Relative" << endl;
+                if(movements.front().fixRelative == false)
+                    //Adds yaw to the goal rotation to make it relative.
+                    movements.front().goalRotation = movements.front().goalRotation + yaw;
+                    movements.front().fixRelative = true; //Only convert the goal rotation to relative once.
+            }
+            else {
+                cout << "Turn Type: Absolute" << endl;
+            }
+            gamma = movements.front().goalRotation - yaw; //Calculate gamma
+            cout << "Current Yaw: " << yaw << endl;
+            cout << "Goal Yaw:" << movements.front().goalRotation << endl;
+            cout << "Gamma: " << gamma << endl;
+
+            if(gamma < 1 && gamma > -1){
+                cout << "Goal has been reached!" << endl;
+                movements.pop_front();
+            }
+
+            //If the robots angle is in the margin (Rotated correctly)
+            cmd_vel_message.angular.z = gamma/180 * PI;
+
+            cmd_vel_message.linear.x = 0;
+
+            //Publish linear and rotation 
+            cmd_vel_pub.publish(cmd_vel_message);
+        }
+        //If movementype is to traverse to a point
+        else if(movements.front().movementType == traverse){
+            cout << "Traversing robot" << endl;
+            //Alpha is the angle from the robot pos to the goal pos. (Absolute vale)
+            double alpha, gamma, beta;
+
+            Position relativeGoal; //The goal relative to the robot's current position (E.g currentPosition = (5, 9) & goalPosition = (6, 12) then goalPos = (1, 3))
+            relativeGoal.x = movements.front().goalPos.x - pos.x;
+            relativeGoal.y = movements.front().goalPos.y - pos.y;
+            alpha = atan2(relativeGoal.y, relativeGoal.x) * 57.2957795;
+
+            //Alpha can be negtive (E.g -90), so we fix that here so as degrees from 0-360 are desired
+            if(alpha < 0)
+                alpha = 360 + alpha;
+
+            cout << "Alpha (Absolute angles to goalPos): " << alpha << endl;
+
+            //Alpha is always the shortest angle to the goal. E.g: 270 deg = -90
+            //This is a problem when the goal is 180 deg, as it switches from 180 deg to -180 deg
+
+            //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
+            // if(alpha < 0){
+            //     //cout << "----------------" << endl;
+            //     //cout << "Negative alpha: " << alpha << endl;
+            //     double positiveAlpha = alpha + 360;
+            //     //cout << "Positive alpha: " << positiveAlpha << endl;
+            //     //cout << "Current Yaw:" << yaw << endl;
+            
+            //         double positiveDifference = abs(positiveAlpha - yaw);
+            //         double negativeDifference = abs(alpha - yaw);
+            //         //cout << "Positive Dif:" << positiveDifference << endl;
+            //         //cout << "Negative Dif:" << negativeDifference << endl;
+            //         if(positiveDifference < negativeDifference){
+            //             alpha = positiveAlpha; //Swap negative alpha with positive
+            //         }
+            // }
+
+            gamma = alpha - yaw;
+
+            // cout << "---------------" << endl;
+
+            // cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
+
+            // cout << "RobotPos: ("  << pos.x << ", " << pos.y << ")" << endl;
+
+            // cout << "Alpha (Angle to point): " << alpha << endl; //Vinklen fra (0,0) til punktet
+
+            // cout << "Robot Yaw: " << yaw << endl; //Robottens vinkel
+
+            // cout << "Gamma (Angles to turn): " << gamma << endl; //forskel i vinklerne
+
+            // cout << "Gamma (Rads): " << (gamma/180 * PI) << endl; //forskel i vinklerne
+
+            cmd_vel_message.angular.z = gamma/180 * PI;
+
+            //If the robots angle is in the margin (Rotated correctly)
+            if(gamma < 2 && gamma > -2){
+                //cout << "PosDiffernce: (" << posDifference.x << ", " << posDifference.y << ")" << endl;
+                //cout << "PosDiff Abosulte: (" << abs(posDifference.x) << ", " << abs(posDifference.y) << ")" << endl;
+                
+                //If the robot isn't near the goalPos: Keep moving
+                if((abs(relativeGoal.x) > 0.1) || (abs(relativeGoal.y) > 0.1)){
+                    cmd_vel_message.linear.x = 0.3;
+                }
+                //If the robot has reached the goalPos
+                else{
+                    cmd_vel_message.linear.x = 0;
+                    cout << "Goal has been reached!" << endl;
+                    movements.pop_front();
+                }
+            }
+            //The robot is not rotated correctly yet - Dont move
+            else{
+                cmd_vel_message.linear.x = 0;
+            }
+
+            //Publish linear and rotation 
+            cmd_vel_pub.publish(cmd_vel_message);            
+            }
+            //cout << "Moving with movement type: "
+    }
+
     //Only move the turtlebot when moving == true
-    if(movementState == direct || movementState == wall){
+   /* if(movementState == direct || movementState == wall){
         double alpha, relativeGoalx, relativeGoaly, gamma, beta;
 
         relativeGoalx = goalPos.x-pos.x;
@@ -481,10 +646,6 @@ void Turtlebot::Move(){
 
         //Publish linear and rotation 
         cmd_vel_pub.publish(cmd_vel_message);
-    }
+    }*/
 }
 
-void Turtlebot::ChangeGoal(Position _goalPos)
-{
-    
-}

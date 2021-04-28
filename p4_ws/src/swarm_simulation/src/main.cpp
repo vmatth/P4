@@ -129,6 +129,17 @@ int main(int argc, char *argv[])
     newPos.x = 6;
     newPos.y = 0;
     TurtlebotManager::turtlebots[0]->MoveToGoal(newPos);
+    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, absolute);
+    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, relative);
+    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, absolute);
+    Position goalPos;
+    goalPos.x = 7;
+    goalPos.y = 7;
+    TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
+    TurtlebotManager::turtlebots[0]->NewMovement(turn, 180, absolute);
+    goalPos.x = -2;
+    goalPos.y = 5;
+    TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
     MarkersManager::DrawMLine(0, newPos);
     
     while (ok())
