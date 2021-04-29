@@ -9,6 +9,11 @@
         "*.ccp": "cpp",
         "cmath": "cpp",
         "iostream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "future": "cpp",
+        "valarray": "cpp",
+        "condition_variable": "cpp",
+        "bitset": "cpp",
+        "fstream": "cpp"
     }
 }

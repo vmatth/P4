@@ -180,10 +180,10 @@ void Markers::CellMarker(Position cellPos)
     marker.header.stamp = ros::Time();
     marker.ns = "cell";
     marker.id = cellMarkerId;
-    marker.type = visualization_msgs::Marker::CUBE;
+    marker.type = visualization_msgs::Marker::POINTS;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.pose.position.x = cellPos.x;
-    marker.pose.position.y = cellPos.y;
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
     marker.pose.position.z = 0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
@@ -200,7 +200,17 @@ void Markers::CellMarker(Position cellPos)
 
     marker.lifetime = ros::Duration();
 
+        for (uint32_t i = 0; i < 1; ++i)
+    { 
+        geometry_msgs::Point pCell;
+        pCell.x = cellPos.x;
+        pCell.y = cellPos.y;
+        pCell.z = 0;
+  
+        marker.points.push_back(pCell);
+    }
     vis_pub.publish(marker);
+
 }
 
 void Markers::MLine(Position startPos, Position goalPos, int robotId)
