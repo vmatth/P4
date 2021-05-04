@@ -124,7 +124,11 @@ int main(int argc, char *argv[])
     Position cell = MarkersManager::superArea.GetNearestCell(TurtlebotManager::turtlebots[0]->GetPosition());
     cout << "Nearest cell is at: (" << cell.x << " , " << cell.y << ")" << endl;
 
-    MarkersManager::DrawMLine(0, cell);
+//    Position tempGoal;
+//    tempGoal.x = 12.5;
+ //   tempGoal.y = 5.5;
+
+    MarkersManager::DrawMLine(0, cell);  //Goal should be "cell"
     TurtlebotManager::turtlebots[0]->NewMovement(traverse, cell);
 
     //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, absolute);
