@@ -22,9 +22,9 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0; pos0.x = 7; pos0.y = 9.5;
-        Position pos1; pos1.x = 9; pos1.y = 9.5;
-        Position pos2; pos2.x = 11; pos2.y = 9.5;
+        Position pos0; pos0.x = 1; pos0.y = 9.5;
+        Position pos1; pos1.x = 3; pos1.y = 9.5;
+        Position pos2; pos2.x = 5; pos2.y = 9.5;
 
         robotStartPositions.push_back(pos0);
         robotStartPositions.push_back(pos1);
@@ -49,7 +49,7 @@ namespace TurtlebotManager{
 
 namespace MarkersManager{
     Markers markers;
-    SuperArea superArea(15, 9, 0.4);
+    SuperArea superArea(12, 4, 0.4); //Prev: 15, 9, 0.4
 
     void InitializeMarkers(){
         markers.SetupMarker();
@@ -62,17 +62,17 @@ namespace MarkersManager{
        
 
         ROS_INFO("Super Area Initialized!");
-        // usleep(2000000);
-        // //Create marker for each cell
-        // cout << "Number of sub Areas:" << superArea.GetNumSubAreas() << endl;
-        // cout << "Number of cells: " << superArea.GetNumCells() << endl;
-        // for(int i = 0; i < superArea.GetNumSubAreas(); i++){
-        //     for(int j = 0; j < superArea.GetNumCells(); j++){
-        //         usleep(2000); //Small delay between each marker so rviz can follow     
-        //         markers.CellMarker(superArea.GetSubArea(i).cells[j].GetPosition());
-        //         //cout << "Added cell at: (" << superArea.GetSubArea(i).cells[j].GetPosition().x << ", " << superArea.GetSubArea(i).cells[j].GetPosition().y << ")" << endl;
-        //     }
-        // }
+        usleep(2000000);
+        //Create marker for each cell
+        cout << "Number of sub Areas:" << superArea.GetNumSubAreas() << endl;
+        cout << "Number of cells: " << superArea.GetNumCells() << endl;
+        for(int i = 0; i < superArea.GetNumSubAreas(); i++){
+            for(int j = 0; j < superArea.GetNumCells(); j++){
+                usleep(2000); //Small delay between each marker so rviz can follow     
+                markers.CellMarker(superArea.GetSubArea(i).cells[j].GetPosition(), Unexplored);
+                //cout << "Added cell at: (" << superArea.GetSubArea(i).cells[j].GetPosition().x << ", " << superArea.GetSubArea(i).cells[j].GetPosition().y << ")" << endl;
+            }
+        }
     }
 
     void DrawPoints(){
@@ -101,6 +101,32 @@ namespace MarkersManager{
         //cout << "goalPos: (" << goalPos.x << "," << goalPos.y << ")"<< endl;
     }
 
+    void CheckFreeCell()
+    {
+        for(int i = 0; i < TurtlebotManager::numRobots; i++)
+        {
+            Position cellPos = TurtlebotManager::turtlebots[i]->GetfreeCell();
+            if(cellPos.x != 0 && cellPos.y != 0){
+                cout << "Found new cell pos at (" << cellPos.x << ", " << cellPos.y << ")" << endl;
+                //Call marker function to change color
+                markers.CellMarker(cellPos, Free);
+                TurtlebotManager::turtlebots[i]->EmptyfreeCell();
+                superArea.MarkCell(cellPos, Free);
+                //Find new cell for turtlebot
+                Position newCell = superArea.GetNextCell(cellPos, TurtlebotManager::turtlebots[i]->GetRotation());
+                cout << "Robot [" << i << "]" << "'s next pos: (" << newCell.x << "," << newCell.y << ")" << endl;
+                cout << "----------------------------------" << endl;   
+
+                cout << "Input key to go to resume" << endl;     
+                char x;
+
+                cin >> x;  
+
+                TurtlebotManager::turtlebots[i]->NewMovement(traverse, newCell);
+                
+            }
+        }
+    }
 
 }
 
@@ -120,36 +146,28 @@ int main(int argc, char *argv[])
     MarkersManager::InitializeMarkers();
     loop_rate.sleep();
 
-    cout << "Find nearest cell" << endl;
-    Position cell = MarkersManager::superArea.GetNearestCell(TurtlebotManager::turtlebots[0]->GetPosition());
-    cout << "Nearest cell is at: (" << cell.x << " , " << cell.y << ")" << endl;
+    Position test;
+    test.x = 0.6;
+    test.y = 9.4;
+   // MarkersManager::superArea.CheckIfCellExists(test);
 
-//    Position tempGoal;
-//    tempGoal.x = 12.5;
- //   tempGoal.y = 5.5;
+    for (int i = 0; i < 1; i++)
+    {
+        cout << "Find nearest cell" << endl;
+        Position cell = MarkersManager::superArea.GetNearestCell(TurtlebotManager::turtlebots[i]->GetPosition());
+        cout << "Nearest cell is at: (" << cell.x << " , " << cell.y << ")" << endl;
 
-    MarkersManager::DrawMLine(0, cell);  //Goal should be "cell"
-    TurtlebotManager::turtlebots[0]->NewMovement(traverse, cell);
+        MarkersManager::DrawMLine(i, cell);  //Goal should be "cell"
+        TurtlebotManager::turtlebots[i]->NewMovement(traverse, cell);
+    }
 
-    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, absolute);
-    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, relative);
-    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, absolute);
-    /*Position goalPos;
-    goalPos.x = 13;
-    goalPos.y = 5;
-    
-    //TurtlebotManager::turtlebots[0]->NewMovement(turn, 90, absolute);
-    //goalPos.x = 1;
-    //goalPos.y = 6;
-    //TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
-    */
     
     while (ok())
     {
         MarkersManager::DrawRobotMarkers();
         TurtlebotManager::MoveTurtlebots();
         MarkersManager::DrawPoints(); //todo create callback function for get points
-        
+        MarkersManager::CheckFreeCell();
     
         ros::spinOnce(); //Spin for callback functions 
         loop_rate.sleep();

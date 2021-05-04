@@ -8,6 +8,8 @@
 
 #include <unistd.h>
 
+#include <states.h>
+
 using namespace ros;
 
 class Markers{
@@ -27,7 +29,7 @@ public:
     void SetupMarker();
     void RobotMarker(Position robotPos, int robotId);
     void SetupRobotMarker();
-    void CellMarker(Position cellPos);
+    void CellMarker(Position cellPos, State);
     void SetupCellMarker();
     void MLine(Position startPos, Position goalPos, int robotId);
     Markers();
@@ -77,9 +79,9 @@ void Markers::NewMarker(Position pos, int robotId)
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
     marker.pose.orientation.w = 1.0;
-    marker.scale.x = 0.5;
-    marker.scale.y = 0.5;
-    marker.scale.z = 0.5;
+    marker.scale.x = 0.3;
+    marker.scale.y = 0.3;
+    marker.scale.z = 0.3;
     marker.color.a = 1.0; // Don't forget to set the alpha!
 //    marker.color.r = 1.0;
 //    marker.color.g = 0.0;
@@ -171,7 +173,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
     vis_pub.publish(robotMarker);
 }
 
-void Markers::CellMarker(Position cellPos)
+void Markers::CellMarker(Position cellPos, State state)
 {
     cellMarkerId++;
 
@@ -194,9 +196,24 @@ void Markers::CellMarker(Position cellPos)
     marker.scale.z = 0.1;
     marker.color.a = 0.7; // Don't forget to set the alpha!
 
-    marker.color.r = 1.0;
-    marker.color.g = 1.0;
-    marker.color.b = 1.0;
+    if(state == Unexplored){
+
+        marker.color.r = 1;
+        marker.color.g = 0;
+        marker.color.b = 1;
+
+    }   else if (state == Wall){
+
+        marker.color.r = 0;
+        marker.color.g = 1;
+        marker.color.b = 1;
+
+    }   else if (state == Free){
+
+        marker.color.r = 1;
+        marker.color.g = 1;
+        marker.color.b = 0;
+    }
 
     marker.lifetime = ros::Duration();
 

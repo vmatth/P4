@@ -67,6 +67,8 @@ private:
     bool turningRobot = false;
     bool followWall = false;
 
+    Position freeCell;  //The last free cell explored by the turtebot
+
 public:
 
     //Callback function that is called each time odometry is updated
@@ -102,13 +104,17 @@ public:
 
     Position GetPrevPosition();
 
+    Position GetfreeCell();
+
+    double GetRotation();
+
     void calcPrevPos(Position pos);
 
     int GetId();
 
     void MoveToGoal(Position goalPos);
 
-    void GoalReached(); //Called when the turtlebot reaches goalPos.
+    void GoalReached(Position); //Called when the turtlebot reaches goalPos.
 
     void GoalYawReached();
 
@@ -125,6 +131,8 @@ public:
     Turtlebot(int _id, Position _startPos); //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
 
     void EmptyList();
+
+    void EmptyfreeCell();
 };
 
 
@@ -144,6 +152,16 @@ Position Turtlebot::GetStartPos()
 Position Turtlebot::GetPrevPosition()
 {
     return prevPos;
+}
+
+Position Turtlebot::GetfreeCell()
+{
+    return freeCell;
+}
+
+double Turtlebot::GetRotation()
+{
+    return yaw;
 }
 
 void Turtlebot::calcPrevPos(Position pos)
@@ -333,17 +351,17 @@ void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg)
     //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
-    if(id == 0 && msg->data[0] == 107){
+    if(id == 0 && msg->data[0] == 80){
         //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         range = msg->data[1];
         angle = msg->data[2];
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 1 && msg->data[0] == 1751){
+    else if(id == 1 && msg->data[0] == 1724){
         //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 2 && msg->data[0] == 3395){
+    else if(id == 2 && msg->data[0] == 3368){
         //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }     
@@ -424,9 +442,11 @@ void Turtlebot::MoveToGoal(Position _goalPos){
 
 }
 
-void Turtlebot::GoalReached(){
+void Turtlebot::GoalReached(Position _goal){
     cout << "The goal has been reached by turtlebot [" << id << "]" << endl;
+    freeCell = _goal;
     movementState = idle;
+    PrintPosition(_goal, "Goal Reached: ");
 }
 
 void Turtlebot::GoalYawReached(){
@@ -564,6 +584,7 @@ void Turtlebot::Move(){
                 else{
                     cmd_vel_message.linear.x = 0;
                     cout << "Goal has been reached!" << endl;
+                    GoalReached(movements.front().goalPos);
                     movements.pop_front();
                 }
             }
@@ -697,3 +718,7 @@ void Turtlebot::EmptyList(){
     turningRobot = false;
 }
 
+void Turtlebot::EmptyfreeCell(){
+    freeCell.x = 0;
+    freeCell.y = 0;
+}
