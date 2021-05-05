@@ -45,10 +45,9 @@ private:
 
     Position pos; //The robot's current absolute position
     Position startPos; //The robot's start position
-    Position prevPos;
 
-    Position newPoint;
-    Position goalPos; //Saves the point where the robot will move towards
+    Position newPoint; //Stores a new wall point
+    Position prevPos; //Saves the point where the robot moved last
 
     double yaw, goalYaw;
 
@@ -106,6 +105,8 @@ public:
 
     Position GetfreeCell();
 
+    Position GetGoalPos();
+
     double GetRotation();
 
     void calcPrevPos(Position pos);
@@ -120,7 +121,7 @@ public:
 
     void Move(); //Moves the robot directly to a "goalPos"
 
-    void PrintPoisition(Position pos);
+    void PrintPosition(Position pos, string);
 
     //Creates a new Movement struct with given variables. The movement is pushed into the "movements" list
     void NewMovement(MovementType, Position);
@@ -133,6 +134,8 @@ public:
     void EmptyList();
 
     void EmptyfreeCell();
+
+    void EmptyNewPoint();
 };
 
 
@@ -164,6 +167,10 @@ double Turtlebot::GetRotation()
     return yaw;
 }
 
+Position Turtlebot::GetGoalPos(){
+    return movements.front().goalPos;
+}
+
 void Turtlebot::calcPrevPos(Position pos)
 {
     prevPos = pos;
@@ -174,7 +181,7 @@ int Turtlebot::GetId()
     return id;
 }
 
-void PrintPosition(Position pos, string text){
+void Turtlebot::PrintPosition(Position pos, string text){
     cout << text << "(" << pos.x << ", " << pos.y << ")" << endl;
 }
 
@@ -434,19 +441,12 @@ void Turtlebot::NewMovement(MovementType _movementType, double _goalRotation, Tu
     movements.push_back(m);
 }
 
-void Turtlebot::MoveToGoal(Position _goalPos){
-    goalPos = _goalPos;
-    cout << "Started moving turtlebot [" << id << "]" << " from " << "(" << pos.x << ", " << pos.y << ") " " to (" << goalPos.x << ", " << goalPos.y << ")" << endl;
-    //moving = true; //Allows the Move() function to start
-    movementState = direct;
-
-}
-
 void Turtlebot::GoalReached(Position _goal){
     cout << "The goal has been reached by turtlebot [" << id << "]" << endl;
     freeCell = _goal;
     movementState = idle;
     PrintPosition(_goal, "Goal Reached: ");
+    prevPos = _goal;
 }
 
 void Turtlebot::GoalYawReached(){
@@ -536,25 +536,49 @@ void Turtlebot::Move(){
             //Alpha is always the shortest angle to the goal. E.g: 270 deg = -90
             //This is a problem when the goal is 180 deg, as it switches from 180 deg to -180 deg
 
-            //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
-            // if(alpha < 0){
-            //     //cout << "----------------" << endl;
-            //     //cout << "Negative alpha: " << alpha << endl;
-            //     double positiveAlpha = alpha + 360;
-            //     //cout << "Positive alpha: " << positiveAlpha << endl;
-            //     //cout << "Current Yaw:" << yaw << endl;
+           //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
+            /*if(alpha < 0){
+                //cout << "----------------" << endl;
+                //cout << "Negative alpha: " << alpha << endl;
+                double positiveAlpha = alpha + 360;
+                //cout << "Positive alpha: " << positiveAlpha << endl;
+                //cout << "Current Yaw:" << yaw << endl;
             
-            //         double positiveDifference = abs(positiveAlpha - yaw);
-            //         double negativeDifference = abs(alpha - yaw);
-            //         //cout << "Positive Dif:" << positiveDifference << endl;
-            //         //cout << "Negative Dif:" << negativeDifference << endl;
-            //         if(positiveDifference < negativeDifference){
-            //             alpha = positiveAlpha; //Swap negative alpha with positive
-            //         }
-            // }
+                    double positiveDifference = abs(positiveAlpha - yaw);
+                    double negativeDifference = abs(alpha - yaw);
+                    //cout << "Positive Dif:" << positiveDifference << endl;
+                    //cout << "Negative Dif:" << negativeDifference << endl;
+                    if(positiveDifference < negativeDifference){
+                        alpha = positiveAlpha; //Swap negative alpha with positive
+                    }
+
+            }*/
+
+    
 
             gamma = alpha - yaw;
+            //cout << "Robot Yaw: " << yaw << endl; //Robottens vinkel
 
+            //cout << "gamma: " << gamma << endl; //forskel i vinklerne
+
+            //Always find the shortest angle (gamma) to the destination (alpha)
+
+            if(alpha >= yaw){
+                //cout << "Alpha > yaw" << endl;
+                double newGamma = (360 - gamma) * -1;
+                //cout << "New Gamma: " << newGamma << endl;
+                if(abs(newGamma) <= abs(gamma))
+                    gamma = newGamma;
+            }
+            else if(alpha < yaw){
+                //cout << "Alpha < yaw" << endl;
+                double newGamma = 360 + gamma;
+                //cout << "New Gamma: " << newGamma << endl;
+                if(abs(newGamma) <= abs(gamma))
+                    gamma = newGamma;
+            }
+
+            //cout << "Final gamma: " << gamma << endl; //forskel i vinklerne
             // cout << "---------------" << endl;
 
             //cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
@@ -563,9 +587,6 @@ void Turtlebot::Move(){
 
             // cout << "Alpha (Angle to point): " << alpha << endl; //Vinklen fra (0,0) til punktet
 
-            // cout << "Robot Yaw: " << yaw << endl; //Robottens vinkel
-
-            // cout << "Gamma (Angles to turn): " << gamma << endl; //forskel i vinklerne
 
             // cout << "Gamma (Rads): " << (gamma/180 * PI) << endl; //forskel i vinklerne
 
@@ -577,7 +598,7 @@ void Turtlebot::Move(){
                 //cout << "PosDiff Abosulte: (" << abs(posDifference.x) << ", " << abs(posDifference.y) << ")" << endl;
                 
                 //If the robot isn't near the goalPos: Keep moving
-                if((abs(relativeGoal.x) > 0.1) || (abs(relativeGoal.y) > 0.1)){
+                if((abs(relativeGoal.x) > 0.08) || (abs(relativeGoal.y) > 0.08)){
                     cmd_vel_message.linear.x = 0.3;
                 }
                 //If the robot has reached the goalPos
@@ -598,118 +619,6 @@ void Turtlebot::Move(){
             }
             //cout << "Moving with movement type: "
     }
-
-    //Only move the turtlebot when moving == true
-   /* if(movementState == direct || movementState == wall){
-        double alpha, relativeGoalx, relativeGoaly, gamma, beta;
-
-        relativeGoalx = goalPos.x-pos.x;
-        relativeGoaly = goalPos.y-pos.y;
-
-        alpha = atan2(relativeGoaly, relativeGoalx) * 57.2957795;
-
-        //Alpha is always the shortest angle to the goal. E.g: 270 deg = -90
-        //This is a problem when the goal is 180 deg, as it switches from 180 deg to -180 deg
-
-        //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
-        if(alpha < 0){
-            //cout << "----------------" << endl;
-            //cout << "Negative alpha: " << alpha << endl;
-            double positiveAlpha = alpha + 360;
-            //cout << "Positive alpha: " << positiveAlpha << endl;
-            //cout << "Current Yaw:" << yaw << endl;
-        
-                double positiveDifference = abs(positiveAlpha - yaw);
-                double negativeDifference = abs(alpha - yaw);
-                //cout << "Positive Dif:" << positiveDifference << endl;
-                //cout << "Negative Dif:" << negativeDifference << endl;
-                if(positiveDifference < negativeDifference){
-                    alpha = positiveAlpha; //Swap negative alpha with positive
-                }
-        }
-
-        gamma = alpha - yaw;
-
-        // cout << "---------------" << endl;
-
-        // cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
-
-        // cout << "RobotPos: ("  << pos.x << ", " << pos.y << ")" << endl;
-
-        // cout << "Alpha (Angle to point): " << alpha << endl; //Vinklen fra (0,0) til punktet
-
-        // cout << "Robot Yaw: " << yaw << endl; //Robottens vinkel
-
-        // cout << "Gamma (Angles to turn): " << gamma << endl; //forskel i vinklerne
-
-        // cout << "Gamma (Rads): " << (gamma/180 * PI) << endl; //forskel i vinklerne
-
-        cmd_vel_message.angular.z = gamma/180 * PI;
-
-        //If the robots angle is in the margin (Rotated correctly)
-        if(gamma < 2 && gamma > -2){
-            Position posDifference; 
-            posDifference.x = goalPos.x - pos.x;
-            posDifference.y = goalPos.y - pos.y;
-            //cout << "PosDiffernce: (" << posDifference.x << ", " << posDifference.y << ")" << endl;
-            //cout << "PosDiff Abosulte: (" << abs(posDifference.x) << ", " << abs(posDifference.y) << ")" << endl;
-            //If the robot isn't near the goalPos: Keep moving
-            if((abs(posDifference.x) > 0.1) || (abs(posDifference.y) > 0.1)){
-                cmd_vel_message.linear.x = 0.3;
-            }
-            //If the robot has reached the goalPos
-            else{
-                cmd_vel_message.linear.x = 0;
-                GoalReached();
-            }
-        }
-        //The robot is not rotated correctly yet - Dont move
-        else{
-            cmd_vel_message.linear.x = 0;
-        }
-
-        //Publish linear and rotation 
-        cmd_vel_pub.publish(cmd_vel_message);
-    }
-    else if(movementState == turning){
-        //Alpha is always the shortest angle to the goal. E.g: 270 deg = -90
-        //This is a problem when the goal is 180 deg, as it switches from 180 deg to -180 deg
-
-        //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
-        if(goalYaw < 0){
-            cout << "----------------" << endl;
-            cout << "Negative alpha: " << goalYaw << endl;
-            double positiveAlpha = goalYaw + 360;
-            cout << "Positive alpha: " << positiveAlpha << endl;
-            cout << "Current Yaw:" << yaw << endl;
-    
-            double positiveDifference = abs(positiveAlpha - yaw);
-            double negativeDifference = abs(goalYaw - yaw);
-            cout << "Positive Dif:" << positiveDifference << endl;
-            cout << "Negative Dif:" << negativeDifference << endl;
-            if(positiveDifference < negativeDifference){
-                goalYaw = positiveAlpha; //Swap negative alpha with positive
-            }
-        }
-    
-        cout << "YAW: " << yaw << endl;
-        cout << "GOAL YAW:" << goalYaw << endl;
-
-        double gamma = goalYaw - yaw;
-        cout << "Gamma: " << gamma << endl;
-
-        if(gamma < 1 && gamma > -1){
-            GoalYawReached();
-        }
-
-        //If the robots angle is in the margin (Rotated correctly)
-        cmd_vel_message.angular.z = gamma/180 * PI;
-
-        cmd_vel_message.linear.x = 0;
-
-        //Publish linear and rotation 
-        cmd_vel_pub.publish(cmd_vel_message);
-    }*/
 }
 
 void Turtlebot::EmptyList(){
@@ -721,4 +630,10 @@ void Turtlebot::EmptyList(){
 void Turtlebot::EmptyfreeCell(){
     freeCell.x = 0;
     freeCell.y = 0;
+}
+
+//Reset the last detection point
+void Turtlebot::EmptyNewPoint(){
+    newPoint.x = 0;
+    newPoint.y = 0;
 }

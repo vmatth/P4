@@ -10,7 +10,7 @@
    <group ns="turtlebot0">
     <param name="tf_prefix" value="robot0_tf" />
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x 1 -y 9.5 -z 0" />
+      <arg name="init_pose" value="-x 7.5 -y 7.5 -z 0" />
       <arg name="robot_name"  value="Robot0" />
       <arg name="delay" value="0.1" />
     </include>
@@ -20,7 +20,7 @@
   <group ns="turtlebot1">
     <param name="tf_prefix" value="robot1_tf" />
     <include file="$(find swarm_simulation)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x 3 -y 9.5 -z 0" />
+      <arg name="init_pose" value="-x 1 -y 15 -z 0" />
       <arg name="robot_name"  value="Robot1" />
       <arg name="delay" value="1.0" />
     </include>

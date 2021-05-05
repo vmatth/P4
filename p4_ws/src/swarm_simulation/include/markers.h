@@ -30,6 +30,7 @@ public:
     void RobotMarker(Position robotPos, int robotId);
     void SetupRobotMarker();
     void CellMarker(Position cellPos, State);
+    void CellMarkerUpdate(int ID, State state, Position cellPos);
     void SetupCellMarker();
     void MLine(Position startPos, Position goalPos, int robotId);
     Markers();
@@ -215,6 +216,7 @@ void Markers::CellMarker(Position cellPos, State state)
         marker.color.b = 0;
     }
 
+
     marker.lifetime = ros::Duration();
 
         for (uint32_t i = 0; i < 1; ++i)
@@ -228,6 +230,53 @@ void Markers::CellMarker(Position cellPos, State state)
     }
     vis_pub.publish(marker);
 
+}
+
+void Markers::CellMarkerUpdate(int ID, State state, Position cellPos)
+{
+    visualization_msgs::Marker cellmarker;
+    cellmarker.header.frame_id = "map";
+    cellmarker.header.stamp = ros::Time();
+    cellmarker.ns = "cell";
+    cellmarker.id = ID;
+    cellmarker.type = visualization_msgs::Marker::POINTS;
+    cellmarker.action = visualization_msgs::Marker::ADD;
+    cellmarker.scale.x = 0.1;
+    cellmarker.scale.y = 0.1;
+    cellmarker.scale.z = 0.1;
+    cellmarker.color.a = 0.7; // Don't forget to set the alpha!
+    cellmarker.lifetime = ros::Duration();
+
+    if(state == Unexplored){
+
+        cellmarker.color.r = 1;
+        cellmarker.color.g = 0;
+        cellmarker.color.b = 1;
+
+    }   else if (state == Wall){
+
+        cellmarker.color.r = 1;
+        cellmarker.color.g = 1;
+        cellmarker.color.b = 1;
+
+    }   else if (state == Free){
+
+        cellmarker.color.r = 1;
+        cellmarker.color.g = 1;
+        cellmarker.color.b = 0;
+    }
+
+        for (uint32_t i = 0; i < 1; ++i)
+    { 
+        geometry_msgs::Point pCell;
+        pCell.x = cellPos.x;
+        pCell.y = cellPos.y;
+        pCell.z = 0;
+  
+        cellmarker.points.push_back(pCell);
+    }
+
+    vis_pub.publish(cellmarker);
 }
 
 void Markers::MLine(Position startPos, Position goalPos, int robotId)
