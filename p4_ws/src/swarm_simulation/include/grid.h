@@ -754,7 +754,7 @@ public:
         return nearestCell;
     }
   
-    list<Index> tempPos;
+
 
     list<Position> AStarPathfinding(Position startPos, Position endPos){
 
@@ -762,35 +762,74 @@ public:
         Index endPosIndex = GetNearestCellIndex(endPos, Unexplored, Unexplored, false);
         Index startPosIndex = GetNearestCellIndex(startPos, Unexplored, Free, false); 
 
-
-        //Converts to grid to a new grid that A* can use
-        gridtoaStar();
-
         PrintPosition(startPos, "Starting pathfinding from: ");
         PrintPosition(endPos, "to: ");
 
         cout << "Start Pos INDEX: (" << startPosIndex.x << "," << startPosIndex.y << ")" << endl;
         cout << "End Pos INDEX: (" << endPosIndex.x << "," << endPosIndex.y << ")" << endl;
 
-        tempPos.empty();
+        //Flip x & y before passing values to A*
+        int temp;
+        temp = startPosIndex.x;
+        startPosIndex.x = startPosIndex.y;
+        startPosIndex.y = temp;
+        temp = endPosIndex.x;
+        endPosIndex.x = endPosIndex.y;
+        endPosIndex.y = temp;
+
+        //Converts to grid to a new grid that A* can use
+        gridtoaStar();
+
+        list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
         tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex);
 
+        list<Position> path; //The positions from A* will be stored in this list (as positions)
 
-        list<Position> path;
-
-        cout << "The path is: " << endl;
+        //cout << "The path is: " << endl;
         //The path is received in index. Convert to position here
-
         int i = 0;
         for (auto const& p : tempPos) {
-            Position newPos = gridPositions[int(p.y)][int(p.x)];
-            cout << "[" << i << "] Index: (" << p.y << "," << p.x << ")" << endl;
-            cout << "[" << i << "] Position: (" << newPos.x << "," << newPos.y << ")" << endl;
-
+            Position newPos = gridPositions[int(p.x)][int(p.y)];
+            //cout << "[" << i << "] Index: (" << p.x << "," << p.y << ")" << endl;
+            //cout << "[" << i << "] Position: (" << newPos.x << "," << newPos.y << ")" << endl;
             path.push_back(newPos);
             i++;
         }
         cout << "------------------------------------" << endl;
+
+        //Show the grid in terminal. Create a new grid "terminalGrid"
+        int **terminalGrid;
+        terminalGrid = new int*[rows];
+        for(int i = 0; i < rows; i++)
+            terminalGrid[i] = new int[rows];
+
+        //Loop terminalGrid and copy "newGrid's" values to it,
+        for(int x = 0; x < rows; x++){
+            for(int y = 0; y < cols; y++){
+                terminalGrid[x][y] = newgrid[x][y];
+                //If the value is a path. Change to path to "2", this will be later visualized in the terminal
+                for (auto const& p : tempPos) {
+                    if(x == p.x && y == p.y){
+                        terminalGrid[x][y] = 2;
+                    }
+                }
+            }
+        }
+
+        //Show terminalGrid in the terminal
+        for (int i = rows - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < rows; ++j)
+            {
+                if(terminalGrid[j][i] == 0)
+                    std::cout << "X ";
+                else if(terminalGrid[j][i] == 1)
+                    std::cout << "- ";
+                else
+                    std::cout << "# "; //Show "+" if path
+            }
+            std::cout << std::endl;
+        }  
 
         return path;
 
@@ -821,6 +860,129 @@ public:
                 else newgrid[x][y] = 0;
             }
         }
+
+        /*for (int i = rows - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < rows; ++j)
+            {
+                std::cout << newgrid[j][i] << ' ';
+            }
+            std::cout << std::endl;
+        }  */
+
+    }
+
+    void AAA(){
+        int **grod;
+        grod = new int*[4];
+        for(int i = 0; i < 4; i++)
+            grod[i] = new int[4];
+
+        int **grad;
+        grad = new int*[4];
+        for(int i = 0; i < 4; i++)
+            grad[i] = new int[4];
+        
+        grod[0][0] = 1;
+        grod[1][0] = 0;
+        grod[2][0] = 1;
+        grod[3][0] = 1;
+
+        grod[0][1] = 1;
+        grod[1][1] = 0;
+        grod[2][1] = 0;
+        grod[3][1] = 1;
+
+        grod[0][2] = 1;
+        grod[1][2] = 0;
+        grod[2][2] = 0;
+        grod[3][2] = 1;
+
+        grod[0][3] = 1;
+        grod[1][3] = 1;
+        grod[2][3] = 1;
+        grod[3][3] = 1;
+
+
+        for (int i = 4 - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                std::cout << grod[j][i] << ' ';
+            }
+            std::cout << std::endl;
+        }  
+        cout << "---------" << endl;
+
+        Index startPosIndex;
+        startPosIndex.x = 0;
+        startPosIndex.y = 0;
+
+        Index endPosIndex;
+        endPosIndex.x = 2;
+        endPosIndex.y = 0;  
+
+
+        //The end and start pos must be flipped before giving them to A*
+
+        endPosIndex.y = 2;
+        endPosIndex.x = 0;
+
+        list<Index> tempPos;
+
+        tempPos = aStarPATH(grod, 4, 4, startPosIndex, endPosIndex);
+
+        list<Position> path;
+
+        cout << "The path is: " << endl;
+        //The path is received in index. Convert to position here
+
+        int i = 0;
+        for (auto const& p : tempPos) {
+            Position newPos = gridPositions[int(p.x)][int(p.y)];
+            cout << "[" << i << "] Index: (" << p.x << "," << p.y << ")" << endl;
+            cout << "[" << i << "] Position: (" << newPos.x << "," << newPos.y << ")" << endl;
+
+            path.push_back(newPos);
+            i++;
+        }
+
+
+
+
+
+        cout << "------------------------------------" << endl;
+
+        //Show the grid in terminal. Create a new grid "terminalGrid"
+        int **terminalGrid;
+        terminalGrid = new int*[4];
+        for(int i = 0; i < 4; i++)
+            terminalGrid[i] = new int[4];
+
+        //Loop terminalGrid and copy "newGrid's" values to it,
+        for(int x = 0; x < 4; x++){
+            for(int y = 0; y < 4; y++){
+                terminalGrid[x][y] = grod[x][y];
+                //If the value is a path. Change to path to "2", this will be later visualized in the terminal
+                for (auto const& p : tempPos) {
+                    if(x == p.x && y == p.y){
+                        terminalGrid[x][y] = 2;
+                    }
+                }
+            }
+        }
+
+        for (int i = 4 - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                if(terminalGrid[j][i] != 2)
+                    std::cout << terminalGrid[j][i] << ' ';
+                else
+                    std::cout << "+ ";
+            }
+            std::cout << std::endl;
+        }  
 
     }
 };

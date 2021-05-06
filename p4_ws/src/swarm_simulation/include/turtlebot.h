@@ -431,7 +431,7 @@ Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by st
 
 //Creates a new Movement struct with given variables. The movement is pushed into the "movements" list
 void Turtlebot::NewMovement(MovementType _movementType, Position _goalPos){
-    cout << "New Movement Command has been given to [" << id << "]" << " of type: Traverse " << endl;
+    //cout << "New Movement Command has been given to [" << id << "]" << " of type: Traverse " << endl;
     Movement m;
     m.movementType = _movementType;
     m.goalPos = _goalPos;

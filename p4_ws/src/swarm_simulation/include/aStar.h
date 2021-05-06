@@ -418,7 +418,7 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
  
         //----------- 5th Successor (North-East)
         //------------
- 
+    /*    
         // Only process this cell if this is a valid one
         if (isValid(i - 1, j + 1) == true) {
             // If the destination cell is the same as the
@@ -613,7 +613,7 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
                     cellDetails[i + 1][j - 1].parent_j = j;
                 }
             }
-        }
+        }*/
     }
  
     // When the destination cell is not found and the open
@@ -632,14 +632,7 @@ list<Index> aStarPATH(int **grid, int row, int col, Index startPos, Index endPos
 {
 
 
-    for (int i = 0; i < col; ++i)
-    {
-        for (int j = 0; j < row; ++j)
-        {
-            std::cout << grid[i][j] << ' ';
-        }
-        std::cout << std::endl;
-    }
+
 
     /* Description of the Grid-
      1--> The cell is not blocked

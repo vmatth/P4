@@ -319,9 +319,10 @@ int main(int argc, char *argv[])
     TurtlebotManager::turtlebots[0]->SetPathfinding(true);
     list<Position> path = MarkersManager::superArea.AStarPathfinding(TurtlebotManager::turtlebots[0]->GetPosition(), endPos);
     for (auto const& p : path) {
-        TurtlebotManager::turtlebots[0]->NewMovement(traverse, p); //TODO MAKE BETTER :) segmentation fault here
-        usleep(5000);
+        TurtlebotManager::turtlebots[0]->NewMovement(traverse, p);
     }
+
+    //MarkersManager::superArea.AAA();
 
 
 

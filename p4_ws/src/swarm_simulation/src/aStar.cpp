@@ -625,6 +625,18 @@ int main()
             { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
             { 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 } };
     //(y,x)
+
+    for (int i = 0; i < COL; ++i)
+    {
+        for (int j = 0; j < ROW; ++j)
+        {
+            std::cout << grid[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }    
+ 
+
+
     // Source is the left-most bottom-most corner
     Pair src = make_pair(8, 0);
  
