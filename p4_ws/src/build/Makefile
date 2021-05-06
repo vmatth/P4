@@ -296,6 +296,19 @@ _catkin_empty_exported_target/fast:
 .PHONY : _catkin_empty_exported_target/fast
 
 #=============================================================================
+# Target rules for targets named aStar_node
+
+# Build rule for target.
+aStar_node: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 aStar_node
+.PHONY : aStar_node
+
+# fast build rule for target.
+aStar_node/fast:
+	$(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/build
+.PHONY : aStar_node/fast
+
+#=============================================================================
 # Target rules for targets named topic_test_node
 
 # Build rule for target.
@@ -812,6 +825,7 @@ help:
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... _catkin_empty_exported_target"
+	@echo "... aStar_node"
 	@echo "... topic_test_node"
 	@echo "... actionlib_generate_messages_py"
 	@echo "... actionlib_generate_messages_nodejs"

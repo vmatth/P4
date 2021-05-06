@@ -139,6 +139,7 @@ include_directories(
 add_executable(main_node src/main.cpp)
 add_executable(swarm_simulation src/MulRobTest.cpp)
 add_executable(topic_test_node src/TopicTest.cpp)
+add_executable(aStar_node src/aStar.cpp)
 
 ########add_executable(swarm_simulation src/MulRobTest.cpp)#####
 
@@ -154,15 +155,19 @@ add_executable(topic_test_node src/TopicTest.cpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(main_node
-   ${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
  )
  
  target_link_libraries(swarm_simulation
- ${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(topic_test_node
-${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(aStar_node
+  ${catkin_LIBRARIES}
 )
 
 

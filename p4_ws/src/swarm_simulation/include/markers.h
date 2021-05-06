@@ -20,19 +20,22 @@ private:
     uint64_t mLinePointId = 0;
     uint64_t mLineLineId = 0;
 
-    Publisher vis_pub;
+    Publisher wallmarker_pub;
     Publisher robotMarker_pub;
     Publisher cellMarker_pub;
+    Publisher MlineMarker_pub;
 
 public:
     void NewMarker(Position pos, int robotId);
     void SetupMarker();
     void RobotMarker(Position robotPos, int robotId);
+    void UpdateRobotMarker(Position robotPos, int rob);
     void SetupRobotMarker();
     void CellMarker(Position cellPos, State);
     void CellMarkerUpdate(int ID, State state, Position cellPos);
     void SetupCellMarker();
     void MLine(Position startPos, Position goalPos, int robotId);
+    void SetupMlineMarker();
     Markers();
 };
 
@@ -40,9 +43,9 @@ public:
 void Markers::SetupMarker(){
     NodeHandle node_handle;
 
-    vis_pub = node_handle.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
+    wallmarker_pub = node_handle.advertise<visualization_msgs::Marker>("/visualization_marker/wall", 1);
 }
-/*
+
 //Creates the topic visualization_marker/robotMarker
 void Markers::SetupRobotMarker(){
     NodeHandle node_handle_robot;
@@ -55,7 +58,14 @@ void Markers::SetupCellMarker(){
     NodeHandle node_handle_cell;
 
     cellMarker_pub = node_handle_cell.advertise<visualization_msgs::Marker>("/visualization_marker/cell", 1);
-}*/
+}
+
+//Creates the topic visualization_marker/robotMarker
+void Markers::SetupMlineMarker(){
+    NodeHandle node_handle_Mline;
+
+    MlineMarker_pub = node_handle_Mline.advertise<visualization_msgs::Marker>("/visualization_marker/mline", 1);
+}
 
 //Constructor
 Markers::Markers(){
@@ -117,7 +127,7 @@ void Markers::NewMarker(Position pos, int robotId)
         cout << "Robot does not exist" << endl;
     }
 
-    vis_pub.publish(marker);
+    wallmarker_pub.publish(marker);
 }
 
 void Markers::RobotMarker(Position robotPos, int robotId)
@@ -171,7 +181,11 @@ void Markers::RobotMarker(Position robotPos, int robotId)
 
     robotMarker.lifetime = ros::Duration();
 
-    vis_pub.publish(robotMarker);
+    robotMarker_pub.publish(robotMarker);
+}
+
+void UpdateRobotMarker(){
+    ;
 }
 
 void Markers::CellMarker(Position cellPos, State state)
@@ -198,7 +212,7 @@ void Markers::CellMarker(Position cellPos, State state)
     marker.color.a = 0.7; // Don't forget to set the alpha!
 
     if(state == Unexplored){
-
+        cout << "This cell is unexplored" << endl;
         marker.color.r = 1;
         marker.color.g = 0;
         marker.color.b = 1;
@@ -210,7 +224,7 @@ void Markers::CellMarker(Position cellPos, State state)
         marker.color.b = 1;
 
     }   else if (state == Free){
-
+        cout << "This cell is Free" << endl;
         marker.color.r = 1;
         marker.color.g = 1;
         marker.color.b = 0;
@@ -228,7 +242,7 @@ void Markers::CellMarker(Position cellPos, State state)
   
         marker.points.push_back(pCell);
     }
-    vis_pub.publish(marker);
+    cellMarker_pub.publish(marker);
 
 }
 
@@ -276,7 +290,7 @@ void Markers::CellMarkerUpdate(int ID, State state, Position cellPos)
         cellmarker.points.push_back(pCell);
     }
 
-    vis_pub.publish(cellmarker);
+    cellMarker_pub.publish(cellmarker);
 }
 
 void Markers::MLine(Position startPos, Position goalPos, int robotId)
@@ -387,8 +401,8 @@ void Markers::MLine(Position startPos, Position goalPos, int robotId)
     }
 
     usleep(1000);
-    vis_pub.publish(mLineMarkerPoints);
+    MlineMarker_pub.publish(mLineMarkerPoints);
     usleep(1000);
-    vis_pub.publish(mLineMarkerLine);
+    MlineMarker_pub.publish(mLineMarkerLine);
 
 }

@@ -6,6 +6,10 @@
 
 #IncludeRegexTransform: 
 
+../swarm_simulation/include/aStar.h
+bits/stdc++.h
+-
+
 ../swarm_simulation/include/grid.h
 iostream
 -
@@ -86,6 +90,8 @@ grid.h
 markers.h
 -
 unistd.h
+-
+aStar.h
 -
 
 /opt/ros/kinetic/include/actionlib/action_definition.h

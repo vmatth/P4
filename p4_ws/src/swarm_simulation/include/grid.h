@@ -27,7 +27,7 @@ struct Grid{
     double size; //x & y size of the grid
 };
 
-class Cell{
+/*class Cell{
 private:
     Grid grid;
     State state = Unexplored;
@@ -56,9 +56,9 @@ public:
     }
 
     
-};
+};*/
 
-class SubArea{
+/*class SubArea{
 private:
     Grid grid;
     Index index;
@@ -147,18 +147,56 @@ public:
         }
         return -1; //If cell doesn't exist
     }
+};*/
+
+
+struct SubAreaInterval{
+    int startX = 0;
+    int endX = 0;
+
+    int startY = 0;
+    int endY = 0;
 };
 
 class SuperArea{
 private:
-    Grid grid;
-    vector<SubArea> subAreas;
-    double cellDistance; //Distance between each cell
+    //Grid grid;
+    //vector<SubArea> subAreas;
+    //double cellDistance; //Distance between each cell
 
+    //SubArea interval (first is in index, second is in position)
+    SubAreaInterval** subAreaIntervals;
+    SubAreaInterval** subAreaIntervalsPosition;
+
+
+    //Grid contains 0 and 1. 0: Wall, 1: Free
+    int grid[][0];
+
+    //Grid contains information of which subarea the cell is in
+    //The grid will look something like:
+    // 2 2 3 3
+    // 2 2 3 3
+    // 0 0 1 1
+    // 0 0 1 1
+    Index gridSubAreas[][0];
+
+    //Add a position (x,y) for each grid
+    Position gridPositions[][0];
+
+    int subAreaSize;
+    int numSubAreas;
+    int numSubAreasSqrt;
+
+    int rows, cols;
 public:
     //Super Area constructor. Creates SubAreas inside. numSubAreas can be 2², 3², 4² ...
-    SuperArea(int size, int numSubAreas, double cellSize){
-        cout << "Creating new SuperArea with size: " << size << endl;
+    SuperArea(int size, int _numSubAreas, double cellSize){
+
+        numSubAreas = _numSubAreas;
+
+        NewGrid(size, _numSubAreas, cellSize);
+
+        /*cout << "Creating new SuperArea with size: " << size << endl;
         grid.size = size;
         cellDistance = cellSize;
 
@@ -183,119 +221,124 @@ public:
 
                 //cout << " NewPos: (" << newPos.x << ", " << newPos.y << ")" << endl;
             }
-        }
+        }*/
     }
 
-    // Returns the index of which sub area the specific robot is in
-    int GetSubArea(Position pos){
-        double subAreaSize = subAreas[0].getsubGridSize();
-        
-        for (int i = 0; i < subAreas.size(); i++)
-        {
-            double x = subAreas[i].GetPosition().x;
-            double y = subAreas[i].GetPosition().y;
-            
-            if (pos.x > x && pos.x < (x+subAreaSize)){
-                if (pos.y > y && pos.y < (y+subAreaSize)){
-                    return i;
+    // Returns the index of which sub area the specific robot is in E.g [0,1] (x,y)
+    Index GetSubArea(Position pos){
+        Index subA; //Index value to return later
+
+        for(int x = 0; x < numSubAreasSqrt; x++){
+            for(int y = 0; y < numSubAreasSqrt; y++){
+                if(pos.x >= subAreaIntervalsPosition[x][y].startX && pos.x < subAreaIntervalsPosition[x][y].endX){
+                    if(pos.y >= subAreaIntervalsPosition[x][y].startY && pos.y < subAreaIntervalsPosition[x][y].endY){
+                        cout << "GetSubArea: [" << x << "][" << y << "] for pos (" << pos.x << "," << pos.y << ")" << endl;
+                        Index subA;
+                        subA.x = x;
+                        subA.y = y;
+                        return subA;
+                    } 
                 }
             }
         }
-        ROS_FATAL("No robot in any sub area!!!!");
-        return -1;
+
+        cout << "SubArea not found for pos (" << pos.x << "," << pos.y << ")" << endl;
+        subA.x = -1;
+        subA.y = -1;       
+        return subA;
     }
 
-    //Gets the cell that is closest to the turtlebot
-    /*Position GetNearestCell(Position turtlebotPos){
-        Cell nearestCell; //Cell class that will be returned
-        double shortestDistance = 1000; //Temporary value for distance
+    //Gets a position, and finds out the corresponding Cell Index E.g Pos(5, 0.4) has a Index of [8, 2];
+    Index GetCellIndex(Position pos){
+        Index cellIndex;
+        //Convert the position to int, as it is easier to compare due to decimals
+        float xf = pos.x * 10;
+        float yf = pos.y * 10;
 
-        SubArea subArea = subAreas[GetSubArea(turtlebotPos)]; //Get the current subarea that the turtlebot is located in.
-        
-        //Loop all cells in the subArea
-        for(int i = 0; i < subArea.cells.size(); i++){
-            //Distance formula
-            double distToCell = sqrt(pow(turtlebotPos.x - subArea.cells[i].GetPosition().x, 2) 
-                                   + pow(turtlebotPos.y - subArea.cells[i].GetPosition().y, 2));
-            //If new cell is closer
-            if(distToCell <= shortestDistance){
-                shortestDistance = distToCell;
-                nearestCell = subArea.cells[i];
+        int x_ = xf;
+        int y_ = yf;
+
+        //Loop all cell positions in "gridPositions" and compare the positions
+        for(int x = 0; x < rows; x++){
+            for(int y = 0; y < cols; y++){
+                //Convert the position to int, as it is easier to compare due to decimals
+                float _xf = gridPositions[x][y].x * 10;
+                float _yf = gridPositions[x][y].y * 10;
+
+                int _x = _xf;
+                int _y = _yf;    
+
+                if(x_ == _x && y_ == _y){
+                    cellIndex.x = x;
+                    cellIndex.y = y;
+                    cout << "GetCellIndex: [" << x << "][" << y << "] for pos (" << pos.x << "," << pos.y << ")" << endl;;
+                    return cellIndex;
+                }            
             }
         }
-
-        //cout << "Nearest cell has position: (" << nearestCell.GetPosition().x << ", " << nearestCell.GetPosition().y << ")" << endl;
-
-        return nearestCell.GetPosition();
-        
-    }*/
-
+        //If the cell couldn't be found
+        cellIndex.x = -1;
+        cellIndex.y = -1;
+        cout << "Could not find cell index for pos (" << pos.x << "," << pos.y << ")" << endl;
+        return cellIndex;
+    }
 
     int GetNumSubAreas(){
-        return subAreas.size();
+        return numSubAreas;
     }
 
-    int GetNumCells(){
-        return subAreas[0].cells.size();
-    }
-
-    SubArea& GetSubArea(int index){
+    /*SubArea& GetSubArea(int index){
         return subAreas[index];
-    }
+    }*/
 
     //Mark Cell with a State
-    void MarkCell(Position cellPos, State _state){
-        //Find which subArea the cell is in
-        int subAreaIndex = GetSubArea(cellPos);
-        //cout << "Marking cell in SubArea: " << subAreaIndex << endl;
-        //Find the id of the cell (index in the "cells" array)
-        int cellIndex = subAreas[subAreaIndex].GetCellIndex(cellPos);
-        cout << "Marking cell (" << cellPos.x << " , " << cellPos.y << ")" << " [cellId: " << cellIndex << "], State: " << _state << endl;
-        //Update the state
-        subAreas[subAreaIndex].cells[cellIndex].UpdateState(_state);
+    void ChangeCellState(Position cellPos, State _state){
+
+        Index cellIndex = GetCellIndex(cellPos);        
+
+        if(cellIndex.x != -1){ //Check if the cell exists
+            cout << "Marking cell (" << cellPos.x << " , " << cellPos.y << "), State: " << _state << endl;
+        }
+
+        grid[cellIndex.x][cellIndex.y] = _state;
+    }
+
+    bool CompareSubAreas(Position pos1, Position pos2){
+
+        Index subArea1 = GetSubArea(pos1);
+        Index subArea2 = GetSubArea(pos2);
+
+        if(subArea1.x == subArea2.x && subArea1.y == subArea2.y){
+            return true;
+        }
+
+        return false;
     }
     
     //Checks if the new position "cellPos" is an existing point, and it is in the same subArea as the turtlebot
     bool CheckIfCellExists(Position cellPos, Position turtlebotPos){
-        //cout << "Checking if Cell (" << cellPos.x << ", " << cellPos.y << ") exists." << endl;
-         //Find which subArea the cell is in
-        int subAreaIndex = GetSubArea(cellPos);
-        int turtlebotSubAreaIndex = GetSubArea(turtlebotPos);
-        //cout << "The cell is located in subArea: " << subAreaIndex << endl;
-        if(subAreaIndex == -1)
-        {
-            cout << "The cell is not in any subareas" << endl;
-            return false;
-        }
 
-        if(subAreaIndex != turtlebotSubAreaIndex){
-            cout << "The cell is not in the same subArea as the turtlebot" << endl;
-            return false;
-        }
-
-        int cellIndex = subAreas[subAreaIndex].GetCellIndex(cellPos);
-
-        if(cellIndex == -1)
-        {
-            cout << "The cell cannot be found" << endl;
-            return false;
-        }
-        else
-        {
+        Index cellIndex = GetCellIndex(cellPos);
+        if(cellIndex.x != -1){
             return true;
         }
-
+        else{
+            return false;
+        }
     }
 
+    //Returns the cell's state E.g Unexplored, Wall or Free
     int GetCellState(Position cellPos){
-        //cout << "Get Cell State for (" << cellPos.x << "," << cellPos.y << ")" << endl;
-        //Find which subArea the cell is in
-        int subAreaIndex = GetSubArea(cellPos);
-        //Find the id of the cell (index in the "cells" array)
-        int cellIndex = subAreas[subAreaIndex].GetCellIndex(cellPos);
-        //Get the cell state
-        //cout << "STATE: " << subAreas[subAreaIndex].cells[cellIndex].GetState() << endl; //Get State
-        return subAreas[subAreaIndex].cells[cellIndex].GetState(); //Get State
+
+        Index cellIndex = GetCellIndex(cellPos);        
+
+        if(cellIndex.x != -1){ //Check if the cell exists
+            return grid[cellIndex.x][cellIndex.y];
+        }      
+    }
+
+    int GetCellState(Index cellIndex){
+        return grid[cellIndex.x][cellIndex.y];
     }
 
     //Gets the next cell that the turtlebot will travel to, based on where the robot is facing and its currentPosition.
@@ -479,42 +522,43 @@ public:
     //Checks if the newly marked point is close to any of the cells. If true, then it will nark the cell as "Wall"
     //Returns info on the cell that has been updated.
     CellInfo MarkWallCells(Position wallPos, Position robotPos){
-        //PrintPosition(wallPos, "Checking if pos is near a wall");
-        //Find the subArea that the turtlebot is in.
-        int subAreaIndex = GetSubArea(robotPos);
+
+        CellInfo cellInfo; //Returns info on the cell that has been updated. Used for rviz marker    
+
+        Index cellIndex = GetCellIndex(wallPos);
+
         Position relativeCell; 
-        for(int j = 0; j < subAreas.size(); j++){
-            for(int i = 0; i < subAreas[j].cells.size(); i++)
-            {
-                Position cellPos = subAreas[subAreaIndex].cells[i].GetPosition();
-                relativeCell.x = cellPos.x - wallPos.x;
-                relativeCell.y = cellPos.y - wallPos.y;
+
+        //Loop all grid positions
+        for(int x = 0; x < rows; x++){
+            for(int y = 0; y < cols; y++){
+                //Get the relative position from the new grid position to the wall position
+                relativeCell.x = gridPositions[x][y].x - wallPos.x;
+                relativeCell.y = gridPositions[x][y].y - wallPos.y;
+
+                //If the relativePosition is low (the wall is close to this cell position)
                 if(abs(relativeCell.x) < 0.2 && abs(relativeCell.y) < 0.2)
                 {
-                    //PrintPosition(cellPos, "Updating cell to wall");
-                    subAreas[subAreaIndex].cells[i].UpdateState(Wall);
+                    //Update state to wall
+                    grid[x][y] = Wall;
 
-                    //Calculate the marker Id for rviz
-                    CellInfo cellInfo;
-                    cellInfo.id = subAreaIndex * subAreas[subAreaIndex].cells.size() + i + 1;
-                    //cout << "The marker id is: " << cellInfo.id;
-
-                    cellInfo.pos = cellPos;
+                    
+                    cellInfo.id = x + y;
+                    cellInfo.pos.x = gridPositions[x][y].x;
+                    cellInfo.pos.y = gridPositions[x][y].y;
 
                     return cellInfo;
                 }
             }
         }
+
+        
+        cellInfo.id = -1;
+        return cellInfo;
     }
 
     void PrintPosition(Position pos, string text){
         cout << text << "(" << pos.x << ", " << pos.y << ")" << endl;
-    }
-
-    void PrintAllCells(int subAreaIndex){
-        for(int i = 0; i < subAreas[subAreaIndex].cells.size(); i++){
-            PrintPosition(subAreas[subAreaIndex].cells[i].GetPosition(), "");
-        }
     }
 
     //Checks if the robot will collide with the goalPos, when a new wall has been found
@@ -556,32 +600,11 @@ public:
     }
 
     //Gets the cell that is closest to the turtlebot
-   /* Position GetNearestUnexploredCell(Position turtlebotPos){
-        Cell nearestCell; //Cell class that will be returned
-        double shortestDistance = 1000; //Temporary value for distance
-
-        SubArea subArea = subAreas[GetSubArea(turtlebotPos)]; //Get the current subarea that the turtlebot is located in.
-        
-        //Loop all cells in the subArea
-        for(int i = 0; i < subArea.cells.size(); i++){
-            //Distance formula
-            double distToCell = sqrt(pow(turtlebotPos.x - subArea.cells[i].GetPosition().x, 2) 
-                                   + pow(turtlebotPos.y - subArea.cells[i].GetPosition().y, 2));
-            //If new cell is closer
-            if(distToCell <= shortestDistance && subArea.cells[i].GetState() == Unexplored ){
-                shortestDistance = distToCell;
-                nearestCell = subArea.cells[i];
-            }
-        }
-
-        //cout << "Nearest cell has position: (" << nearestCell.GetPosition().x << ", " << nearestCell.GetPosition().y << ")" << endl;
-
-        return nearestCell.GetPosition();
-    }*/
-
-    //Gets the cell that is closest to the turtlebot
     Position GetNearestCell(Position turtlebotPos, State CellState){
-        Cell nearestCell; //Cell class that will be returned
+
+        Index nearestCell; //Cell index that will be returned
+
+        //Cell nearestCell; //Cell class that will be returned
         double shortestDistance = 1000; //Temporary value for distance
 
         SubArea subArea = subAreas[GetSubArea(turtlebotPos)]; //Get the current subarea that the turtlebot is located in.
@@ -602,4 +625,95 @@ public:
 
         return nearestCell.GetPosition();
     }
+
+
+
+
+    //Creates a new grid. All sizes are in metres
+    void NewGrid(int size, int _numSubAreas, double cellDistance){
+        cout << "New grid with Size: " << size << ", cell distance: " << cellDistance << " and num of sub areas: " << numSubAreas << endl;
+        rows = size / cellDistance;
+        cols = size / cellDistance;
+        cout << "Rows & Cols: " << rows << endl;
+
+        numSubAreasSqrt = int(sqrt(numSubAreas));
+        int subAreaSize = size / numSubAreasSqrt;
+        
+        cout << "Number of Sub Areas (Sqrt): " << numSubAreasSqrt << endl;
+        cout << "Sub Area Size: " << subAreaSize << endl;
+
+        //Creates the array like this because c++ magic
+        subAreaIntervals = new SubAreaInterval*[numSubAreasSqrt];
+        for(int i = 0; i < numSubAreasSqrt; i++)
+            subAreaIntervals[i] = new SubAreaInterval[numSubAreasSqrt];
+
+        subAreaIntervalsPosition = new SubAreaInterval*[numSubAreasSqrt];
+        for(int i = 0; i < numSubAreasSqrt; i++)
+            subAreaIntervalsPosition[i] = new SubAreaInterval[numSubAreasSqrt];
+
+        //Creates an interval for each subArea
+        for(int x = 0; x < numSubAreasSqrt; x++){
+            for(int y = 0; y < numSubAreasSqrt; y++){
+                subAreaIntervals[x][y].startX = x * (rows/numSubAreasSqrt);
+                subAreaIntervals[x][y].endX = (x * (rows/numSubAreasSqrt)) + (rows/numSubAreasSqrt) - 1;
+                subAreaIntervals[x][y].startY = y * (cols/numSubAreasSqrt);
+                subAreaIntervals[x][y].endY = (y * (cols/numSubAreasSqrt)) + (cols/numSubAreasSqrt) - 1;
+                subAreaIntervalsPosition[x][y].startX = x * subAreaSize;
+                subAreaIntervalsPosition[x][y].endX = (x * subAreaSize) + subAreaSize;
+                subAreaIntervalsPosition[x][y].startY = y * subAreaSize;
+                subAreaIntervalsPosition[x][y].endY = y * subAreaSize + subAreaSize;
+
+                cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Interval: (" << subAreaIntervals[x][y].startX << "," << subAreaIntervals[x][y].endX << ") y Interval: (" << subAreaIntervals[x][y].startY << "," << subAreaIntervals[x][y].endY << ")" << endl;
+                cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Pos Interval: (" << subAreaIntervalsPosition[x][y].startX << "," << subAreaIntervalsPosition[x][y].endX << ") y Pos Interval: (" << subAreaIntervalsPosition[x][y].startY << "," << subAreaIntervalsPosition[x][y].endY << ")" << endl;
+            }
+           
+        }
+
+        grid[rows][cols];
+        gridSubAreas[rows][cols];
+        gridPositions[rows][cols];
+
+
+        //for loop magic do not question
+        //Adds a subArea number for each cell
+        for(int r = 0; r < rows; r++){
+            for(int c = 0; c < cols; c++){
+                for(int x = 0; x < numSubAreasSqrt; x++){
+                    for(int y = 0; y < numSubAreasSqrt; y++){
+                        if(r >= subAreaIntervals[x][y].startX && r <= subAreaIntervals[x][y].endX){
+                            if(c >= subAreaIntervals[x][y].startY && c <= subAreaIntervals[x][y].endY){
+                                //cout << "Cell (" << r << "," << c << ") is in SubArea [" << x << "][" << y << "]" << endl; 
+                                gridSubAreas[r][c].x = x;
+                                gridSubAreas[r][c].y = y;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //Adds a position (x,y) for each cell
+        for (int x = 0; x < rows; x++){
+            for (int y = 0; y < cols; y++){
+                gridPositions[x][y].x = x * cellDistance + (cellDistance/2);
+                gridPositions[x][y].y = y * cellDistance + (cellDistance/2);
+                //if(x < 20 && y < 20)
+                    //cout << "[" << x << "]" << "[" << y << "]: " << "(" << gridPositions[x][y].x << "," << gridPositions[x][y].y << ")" << endl;
+            }
+        }
+
+
+    }
+
+    int CheckFreeArea(){
+        for(int i = 0; i < numRobots; i++){
+            for(int i = 0; i < GetNumSubAreas(); i++){
+                if(robot position is not in subarea){
+                    return i; 
+                }
+            }
+        }
+    }
+
+
 };

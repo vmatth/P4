@@ -246,7 +246,7 @@ gtest/preinstall: gtest/gtest/preinstall
 gtest/CMakeFiles/gmock.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gmock.dir/build.make gtest/CMakeFiles/gmock.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gmock.dir/build.make gtest/CMakeFiles/gmock.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=1,2,3 "Built target gmock"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=3,4,5 "Built target gmock"
 .PHONY : gtest/CMakeFiles/gmock.dir/all
 
 # Build rule for subdir invocation for target.
@@ -278,7 +278,7 @@ clean: gtest/CMakeFiles/gmock.dir/clean
 gtest/CMakeFiles/gmock_main.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gmock_main.dir/build.make gtest/CMakeFiles/gmock_main.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gmock_main.dir/build.make gtest/CMakeFiles/gmock_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=4,5,6,7 "Built target gmock_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=6,7,8,9 "Built target gmock_main"
 .PHONY : gtest/CMakeFiles/gmock_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -329,7 +329,7 @@ gtest/gtest/preinstall:
 gtest/gtest/CMakeFiles/gtest.dir/all:
 	$(MAKE) -f gtest/gtest/CMakeFiles/gtest.dir/build.make gtest/gtest/CMakeFiles/gtest.dir/depend
 	$(MAKE) -f gtest/gtest/CMakeFiles/gtest.dir/build.make gtest/gtest/CMakeFiles/gtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=8,9 "Built target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=10,11 "Built target gtest"
 .PHONY : gtest/gtest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
@@ -361,7 +361,7 @@ clean: gtest/gtest/CMakeFiles/gtest.dir/clean
 gtest/gtest/CMakeFiles/gtest_main.dir/all: gtest/gtest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/gtest/CMakeFiles/gtest_main.dir/build.make gtest/gtest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) -f gtest/gtest/CMakeFiles/gtest_main.dir/build.make gtest/gtest/CMakeFiles/gtest_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=10,11 "Built target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=12,13 "Built target gtest_main"
 .PHONY : gtest/gtest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -440,6 +440,7 @@ clean: gazebo_tests/CMakeFiles/_catkin_empty_exported_target.dir/clean
 # Directory level rules for directory swarm_simulation
 
 # Convenience name for "all" pass in the directory.
+swarm_simulation/all: swarm_simulation/CMakeFiles/aStar_node.dir/all
 swarm_simulation/all: swarm_simulation/CMakeFiles/topic_test_node.dir/all
 swarm_simulation/all: swarm_simulation/CMakeFiles/swarm_simulation.dir/all
 swarm_simulation/all: swarm_simulation/CMakeFiles/main_node.dir/all
@@ -447,6 +448,7 @@ swarm_simulation/all: swarm_simulation/CMakeFiles/main_node.dir/all
 .PHONY : swarm_simulation/all
 
 # Convenience name for "clean" pass in the directory.
+swarm_simulation/clean: swarm_simulation/CMakeFiles/aStar_node.dir/clean
 swarm_simulation/clean: swarm_simulation/CMakeFiles/topic_test_node.dir/clean
 swarm_simulation/clean: swarm_simulation/CMakeFiles/actionlib_generate_messages_py.dir/clean
 swarm_simulation/clean: swarm_simulation/CMakeFiles/actionlib_generate_messages_nodejs.dir/clean
@@ -494,13 +496,50 @@ swarm_simulation/preinstall:
 .PHONY : swarm_simulation/preinstall
 
 #=============================================================================
+# Target rules for target swarm_simulation/CMakeFiles/aStar_node.dir
+
+# All Build rule for target.
+swarm_simulation/CMakeFiles/aStar_node.dir/all:
+	$(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/depend
+	$(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=1,2 "Built target aStar_node"
+.PHONY : swarm_simulation/CMakeFiles/aStar_node.dir/all
+
+# Include target in all.
+all: swarm_simulation/CMakeFiles/aStar_node.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+swarm_simulation/CMakeFiles/aStar_node.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/vini/P4/p4_ws/src/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 swarm_simulation/CMakeFiles/aStar_node.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/vini/P4/p4_ws/src/build/CMakeFiles 0
+.PHONY : swarm_simulation/CMakeFiles/aStar_node.dir/rule
+
+# Convenience name for target.
+aStar_node: swarm_simulation/CMakeFiles/aStar_node.dir/rule
+
+.PHONY : aStar_node
+
+# clean rule for target.
+swarm_simulation/CMakeFiles/aStar_node.dir/clean:
+	$(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/clean
+.PHONY : swarm_simulation/CMakeFiles/aStar_node.dir/clean
+
+# clean rule for target.
+clean: swarm_simulation/CMakeFiles/aStar_node.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
 # Target rules for target swarm_simulation/CMakeFiles/topic_test_node.dir
 
 # All Build rule for target.
 swarm_simulation/CMakeFiles/topic_test_node.dir/all:
 	$(MAKE) -f swarm_simulation/CMakeFiles/topic_test_node.dir/build.make swarm_simulation/CMakeFiles/topic_test_node.dir/depend
 	$(MAKE) -f swarm_simulation/CMakeFiles/topic_test_node.dir/build.make swarm_simulation/CMakeFiles/topic_test_node.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=16,17 "Built target topic_test_node"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=18,19 "Built target topic_test_node"
 .PHONY : swarm_simulation/CMakeFiles/topic_test_node.dir/all
 
 # Include target in all.
@@ -665,7 +704,7 @@ clean: swarm_simulation/CMakeFiles/geometry_msgs_generate_messages_py.dir/clean
 swarm_simulation/CMakeFiles/swarm_simulation.dir/all:
 	$(MAKE) -f swarm_simulation/CMakeFiles/swarm_simulation.dir/build.make swarm_simulation/CMakeFiles/swarm_simulation.dir/depend
 	$(MAKE) -f swarm_simulation/CMakeFiles/swarm_simulation.dir/build.make swarm_simulation/CMakeFiles/swarm_simulation.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=14,15 "Built target swarm_simulation"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=16,17 "Built target swarm_simulation"
 .PHONY : swarm_simulation/CMakeFiles/swarm_simulation.dir/all
 
 # Include target in all.
@@ -798,7 +837,7 @@ clean: swarm_simulation/CMakeFiles/std_msgs_generate_messages_py.dir/clean
 swarm_simulation/CMakeFiles/main_node.dir/all:
 	$(MAKE) -f swarm_simulation/CMakeFiles/main_node.dir/build.make swarm_simulation/CMakeFiles/main_node.dir/depend
 	$(MAKE) -f swarm_simulation/CMakeFiles/main_node.dir/build.make swarm_simulation/CMakeFiles/main_node.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=12,13 "Built target main_node"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/vini/P4/p4_ws/src/build/CMakeFiles --progress-num=14,15 "Built target main_node"
 .PHONY : swarm_simulation/CMakeFiles/main_node.dir/all
 
 # Include target in all.

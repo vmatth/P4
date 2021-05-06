@@ -166,6 +166,21 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+swarm_simulation/CMakeFiles/aStar_node.dir/rule:
+	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f CMakeFiles/Makefile2 swarm_simulation/CMakeFiles/aStar_node.dir/rule
+.PHONY : swarm_simulation/CMakeFiles/aStar_node.dir/rule
+
+# Convenience name for target.
+aStar_node: swarm_simulation/CMakeFiles/aStar_node.dir/rule
+
+.PHONY : aStar_node
+
+# fast build rule for target.
+aStar_node/fast:
+	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/build
+.PHONY : aStar_node/fast
+
+# Convenience name for target.
 swarm_simulation/CMakeFiles/topic_test_node.dir/rule:
 	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f CMakeFiles/Makefile2 swarm_simulation/CMakeFiles/topic_test_node.dir/rule
 .PHONY : swarm_simulation/CMakeFiles/topic_test_node.dir/rule
@@ -789,6 +804,33 @@ src/TopicTest.cpp.s:
 	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f swarm_simulation/CMakeFiles/topic_test_node.dir/build.make swarm_simulation/CMakeFiles/topic_test_node.dir/src/TopicTest.cpp.s
 .PHONY : src/TopicTest.cpp.s
 
+src/aStar.o: src/aStar.cpp.o
+
+.PHONY : src/aStar.o
+
+# target to build an object file
+src/aStar.cpp.o:
+	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/src/aStar.cpp.o
+.PHONY : src/aStar.cpp.o
+
+src/aStar.i: src/aStar.cpp.i
+
+.PHONY : src/aStar.i
+
+# target to preprocess a source file
+src/aStar.cpp.i:
+	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/src/aStar.cpp.i
+.PHONY : src/aStar.cpp.i
+
+src/aStar.s: src/aStar.cpp.s
+
+.PHONY : src/aStar.s
+
+# target to generate assembly for a file
+src/aStar.cpp.s:
+	cd /home/vini/P4/p4_ws/src/build && $(MAKE) -f swarm_simulation/CMakeFiles/aStar_node.dir/build.make swarm_simulation/CMakeFiles/aStar_node.dir/src/aStar.cpp.s
+.PHONY : src/aStar.cpp.s
+
 src/main.o: src/main.cpp.o
 
 .PHONY : src/main.o
@@ -828,6 +870,7 @@ help:
 	@echo "... test"
 	@echo "... install/local"
 	@echo "... install/strip"
+	@echo "... aStar_node"
 	@echo "... topic_test_node"
 	@echo "... actionlib_generate_messages_py"
 	@echo "... rebuild_cache"
@@ -873,6 +916,9 @@ help:
 	@echo "... src/TopicTest.o"
 	@echo "... src/TopicTest.i"
 	@echo "... src/TopicTest.s"
+	@echo "... src/aStar.o"
+	@echo "... src/aStar.i"
+	@echo "... src/aStar.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

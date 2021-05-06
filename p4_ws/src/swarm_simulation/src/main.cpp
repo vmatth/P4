@@ -6,12 +6,14 @@
 
 #include <markers.h>
 #include <unistd.h>
+#include <aStar.h>
 
 using namespace std;
 using namespace ros;
 
 //Variables and functions for initializing the turtlebot swarm
 namespace TurtlebotManager{
+    SuperArea superArea(12, 4, 0.4); //Prev: 15, 9, 0.4
 
     int numRobots = 3;
 
@@ -22,7 +24,7 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0; pos0.x = 7.5; pos0.y = 7.5;
+        Position pos0; pos0.x = 6; pos0.y = 8;
         Position pos1; pos1.x = 1; pos1.y = 6.5;
         Position pos2; pos2.x = 5; pos2.y = 9.5;
 
@@ -43,6 +45,65 @@ namespace TurtlebotManager{
     void MoveTurtlebots(){
         for(int i = 0; i < numRobots; i++){
             turtlebots[i]->Move();
+        }
+    }
+
+    // void ExploreNextSubArea(){
+    //     Position robotPosition;
+    //     Position min;
+    //     Position max;
+    //     Position 0Pos;
+    //     Position 1Pos;           //This could be better
+    //     Position 2Pos;
+    //     Position 3Pos;
+    //     for(int i = 0; i < numRobots; i++){
+    //             robotPosition = turtlebots[i]->GetPosition();
+    //             int robotSubArea = superArea.GetSubArea(robotPosition);
+    //         if(all cells in current subarea are explored){
+    //             int freeSubArea = CheckFreeArea();
+    //             0Pos.x = 1.2;
+    //             0Pos.y = 4;
+    //             1Pos.x = 40;
+    //             1Pos.y = 4;
+    //             2Pos.x = 1.2;
+    //             2Pos.y = 40;
+    //             3Pos.x = 40;
+    //             3Pos.y = 40;
+    //             switch(freeSubArea){
+    //                  Case 0:
+                            // Turtlebot::NewMovement(traverse, 0Pos);
+                            // break;
+    //                  Case 1: 
+                            // Turtlebot::NewMovement(traverse, 1Pos);
+                            // break;
+    //                  Case 2:
+                            // Turtlebot::NewMovement(traverse, 2Pos);
+                            // break;
+    //                  Case 3:
+                            // Turtlebot::NewMovement(traverse, 3Pos);
+                            // break;
+    //                  default:
+    //                      cout << "No such subarea" << endl;
+    //                      break;
+    //             }
+
+                
+
+                // Get next unexplored subarea
+                // Go to next unexplored subarea
+                // Call colorchanging function from marker
+
+            //}
+        //}
+    //}
+
+    int CheckFreeArea(){
+        for(int i = 0; i < numRobots; i++){
+            for(int i = 0; i < superArea.GetNumSubAreas(); i++){
+                if(robot position is not in subarea){
+                    return i; 
+                }
+            }
         }
     }
 }
@@ -68,8 +129,9 @@ namespace MarkersManager{
 
     void InitializeMarkers(){
         markers.SetupMarker();
-       // markers.SetupRobotMarker();
-       // markers.SetupCellMarker();
+        markers.SetupRobotMarker();
+        markers.SetupCellMarker();
+        markers.SetupMlineMarker();
 
         ROS_INFO("Markers initialized");   
 
@@ -187,10 +249,9 @@ namespace MarkersManager{
        }
 
     }
+    
 
 }
-
-
 
 int main(int argc, char *argv[])
 {
@@ -208,39 +269,4 @@ int main(int argc, char *argv[])
     MarkersManager::InitializeMarkers();
     loop_rate.sleep();
 
-    // double _x = 0.2;
-    // float _xFloat = _x * 10;
-    // int x = _xFloat;
-
-    // cout << "_x: " << _x << endl;
-    // cout << "_xFloat" << _xFloat << endl;
-    // cout << "x: " << x << endl;
-
-    //MarkersManager::superArea.PrintAllCells(2);
-
-    for (int i = 0; i < 1; i++)
-    {
-        cout << "Find nearest cell" << endl;
-        Position cell = MarkersManager::superArea.GetNearestCell(TurtlebotManager::turtlebots[i]->GetPosition(), Unexplored);
-        cout << "Nearest cell is at: (" << cell.x << " , " << cell.y << ")" << endl;
-
-        MarkersManager::DrawMLine(i, cell);  //Goal should be "cell"
-        TurtlebotManager::turtlebots[i]->NewMovement(traverse, cell);
-    }
-
-    
-    while (ok())
-    {
-        MarkersManager::DrawRobotMarkers();
-        TurtlebotManager::MoveTurtlebots();
-        //MarkersManager::DrawPoints(); //todo create callback function for get points
-        MarkersManager::CheckFreeCell();
-        MarkersManager::MarkPoints();
-    
-        ros::spinOnce(); //Spin for callback functions 
-        loop_rate.sleep();
-    }
-
-
-    return 0;
-}
+    MarkersManager::superArea.NewGrid(20, 4, 0.4);

@@ -36,6 +36,11 @@
 },
 {
   "directory": "/home/vini/P4/p4_ws/src/build/swarm_simulation",
+  "command": "/usr/bin/x86_64-linux-gnu-g++-5   -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\\\"swarm_simulation\\\" -I/home/vini/P4/p4_ws/src/swarm_simulation/include -I/opt/ros/kinetic/include -I/opt/ros/kinetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp    -std=c++11 -g   -o CMakeFiles/aStar_node.dir/src/aStar.cpp.o -c /home/vini/P4/p4_ws/src/swarm_simulation/src/aStar.cpp",
+  "file": "/home/vini/P4/p4_ws/src/swarm_simulation/src/aStar.cpp"
+},
+{
+  "directory": "/home/vini/P4/p4_ws/src/build/swarm_simulation",
   "command": "/usr/bin/x86_64-linux-gnu-g++-5   -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\\\"swarm_simulation\\\" -I/home/vini/P4/p4_ws/src/swarm_simulation/include -I/opt/ros/kinetic/include -I/opt/ros/kinetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp    -std=c++11 -g   -o CMakeFiles/topic_test_node.dir/src/TopicTest.cpp.o -c /home/vini/P4/p4_ws/src/swarm_simulation/src/TopicTest.cpp",
   "file": "/home/vini/P4/p4_ws/src/swarm_simulation/src/TopicTest.cpp"
 },
