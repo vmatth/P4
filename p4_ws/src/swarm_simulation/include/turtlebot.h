@@ -68,6 +68,9 @@ private:
 
     Position freeCell;  //The last free cell explored by the turtebot
 
+    bool pathfinding = false; //If the robot is using A*. If yes, it will not ignore the "front right left" check everytime it reaches a new cell.
+    //If false it will find the next cell after it reaches another cell.
+
 public:
 
     //Callback function that is called each time odometry is updated
@@ -107,6 +110,8 @@ public:
 
     Position GetGoalPos();
 
+    bool GetPathfinding();
+
     double GetRotation();
 
     void calcPrevPos(Position pos);
@@ -136,6 +141,8 @@ public:
     void EmptyfreeCell();
 
     void EmptyNewPoint();
+
+    void SetPathfinding(bool);
 };
 
 
@@ -169,6 +176,14 @@ double Turtlebot::GetRotation()
 
 Position Turtlebot::GetGoalPos(){
     return movements.front().goalPos;
+}
+
+bool Turtlebot::GetPathfinding(){
+    return pathfinding;
+}
+
+void Turtlebot::SetPathfinding(bool _value){
+    pathfinding = _value;
 }
 
 void Turtlebot::calcPrevPos(Position pos)
@@ -358,17 +373,17 @@ void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg)
     //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
-    if(id == 0 && msg->data[0] == 80){
+    if(id == 0 && msg->data[0] == 104){
         //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         range = msg->data[1];
         angle = msg->data[2];
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 1 && msg->data[0] == 1724){
+    else if(id == 1 && msg->data[0] == 1748){
         //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 2 && msg->data[0] == 3368){
+    else if(id == 2 && msg->data[0] == 3392){
         //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }     

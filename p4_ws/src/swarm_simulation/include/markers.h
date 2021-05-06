@@ -190,7 +190,6 @@ void UpdateRobotMarker(){
 
 void Markers::CellMarker(Position cellPos, State state)
 {
-    cellMarkerId++;
 
     visualization_msgs::Marker marker;
     marker.header.frame_id = "map";
@@ -212,7 +211,7 @@ void Markers::CellMarker(Position cellPos, State state)
     marker.color.a = 0.7; // Don't forget to set the alpha!
 
     if(state == Unexplored){
-        cout << "This cell is unexplored" << endl;
+       // cout << "This cell is unexplored" << endl;
         marker.color.r = 1;
         marker.color.g = 0;
         marker.color.b = 1;
@@ -224,7 +223,7 @@ void Markers::CellMarker(Position cellPos, State state)
         marker.color.b = 1;
 
     }   else if (state == Free){
-        cout << "This cell is Free" << endl;
+        //cout << "This cell is Free" << endl;
         marker.color.r = 1;
         marker.color.g = 1;
         marker.color.b = 0;
@@ -243,7 +242,7 @@ void Markers::CellMarker(Position cellPos, State state)
         marker.points.push_back(pCell);
     }
     cellMarker_pub.publish(marker);
-
+    cellMarkerId++;
 }
 
 void Markers::CellMarkerUpdate(int ID, State state, Position cellPos)

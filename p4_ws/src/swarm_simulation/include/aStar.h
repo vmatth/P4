@@ -1,9 +1,14 @@
+#pragma once
+
 // A C++ Program to implement A* Search Algorithm
 #include <bits/stdc++.h>
 using namespace std;
- 
-#define ROW 9
-#define COL 10
+
+#include <index.h>
+
+int ROW, COL;
+
+list<Index> positions;
  
 // Creating a shortcut for int, int pair type
 typedef pair<int, int> Pair;
@@ -32,7 +37,7 @@ bool isValid(int row, int col)
  
 // A Utility Function to check whether the given cell is
 // blocked or not
-bool isUnBlocked(int grid[][COL], int row, int col)
+bool isUnBlocked(int **grid, int row, int col)
 {
     // Returns true if the cell is not blocked else false
     if (grid[row][col] == 1)
@@ -62,8 +67,9 @@ double calculateHValue(int row, int col, Pair dest)
  
 // A Utility Function to trace the path from the source
 // to destination
-void tracePath(cell cellDetails[][COL], Pair dest)
+void tracePath(cell **cellDetails, Pair dest)
 {
+
     printf("\nThe Path is ");
     int row = dest.first;
     int col = dest.second;
@@ -82,6 +88,10 @@ void tracePath(cell cellDetails[][COL], Pair dest)
     Path.push(make_pair(row, col));
     while (!Path.empty()) {
         pair<int, int> p = Path.top();
+        Index newPos;
+        newPos.x = p.first;
+        newPos.y = p.second;
+        positions.push_back(newPos);
         Path.pop();
         printf("-> (%d,%d) ", p.first, p.second);
     }
@@ -92,8 +102,11 @@ void tracePath(cell cellDetails[][COL], Pair dest)
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-void aStarSearch(int grid[][COL], Pair src, Pair dest)
+void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
 {
+    ROW = _ROW;
+    COL = _COL;
+
     // If the source is out of range
     if (isValid(src.first, src.second) == false) {
         printf("Source is invalid\n");
@@ -129,7 +142,13 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
  
     // Declare a 2D array of structure to hold the details
     // of that cell
-    cell cellDetails[ROW][COL];
+    cell **cellDetails;
+
+    //Creates the array like this because c++ magic
+    cellDetails = new cell*[ROW];
+    for(int i = 0; i < ROW; i++)
+        cellDetails[i] = new cell[COL];
+
  
     int i, j;
  
@@ -609,12 +628,23 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 }
  
 // Driver program to test above function
-int aa()
+list<Index> aStarPATH(int **grid, int row, int col, Index startPos, Index endPos)
 {
+
+
+    for (int i = 0; i < col; ++i)
+    {
+        for (int j = 0; j < row; ++j)
+        {
+            std::cout << grid[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }
+
     /* Description of the Grid-
      1--> The cell is not blocked
      0--> The cell is blocked    */
-    int grid[ROW][COL]
+    /*int grid[ROW][COL]
         = { { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
             { 1, 1, 1, 0, 1, 1, 1, 0, 1, 1 },
             { 1, 1, 1, 0, 1, 1, 0, 1, 0, 1 },
@@ -623,15 +653,22 @@ int aa()
             { 1, 0, 1, 1, 1, 1, 0, 1, 0, 0 },
             { 1, 0, 0, 0, 0, 1, 0, 0, 0, 1 },
             { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
-            { 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 } };
+            { 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 } };*/
  
-    // Source is the left-most bottom-most corner
-    Pair src = make_pair(8, 0);
+    // Source is (y,x)
+    Pair src = make_pair(startPos.y, startPos.x);
  
-    // Destination is the left-most top-most corner
-    Pair dest = make_pair(0, 0);
+    // Destination is (y,x)
+    Pair dest = make_pair(endPos.y, endPos.x);
+
+    int num = positions.size();
+    for(int i = 0; i < num; i++){
+        positions.pop_front(); //empty list because c++ is ass and empty doesnt work
+    }
+
+    cout << "OKOKOKOKOKOKOK : " << positions.size() << endl;
  
-    aStarSearch(grid, src, dest);
- 
-    return (0);
+    aStarSearch(grid, src, dest, row, col);
+
+    return positions;
 }
