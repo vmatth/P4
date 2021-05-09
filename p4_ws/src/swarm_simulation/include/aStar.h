@@ -199,7 +199,7 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
         j = p.second.second;
         closedList[i][j] = true;
  
-        /*
+        /*f
          Generating all the 8 successor of this cell
  
              N.W   N   N.E
@@ -659,8 +659,6 @@ list<Index> aStarPATH(int **grid, int row, int col, Index startPos, Index endPos
         positions.pop_front(); //empty list because c++ is ass and empty doesnt work
     }
 
-    cout << "OKOKOKOKOKOKOK : " << positions.size() << endl;
- 
     aStarSearch(grid, src, dest, row, col);
 
     return positions;

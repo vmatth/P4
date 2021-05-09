@@ -179,7 +179,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
         cout << "Robot does not exist" << endl;
     }
 
-    robotMarker.lifetime = ros::Duration();
+    robotMarker.lifetime = ros::Duration(10);
 
     robotMarker_pub.publish(robotMarker);
 }
@@ -230,7 +230,7 @@ void Markers::CellMarker(Position cellPos, State state)
     }
 
 
-    marker.lifetime = ros::Duration();
+    marker.lifetime = ros::Duration(10);
 
         for (uint32_t i = 0; i < 1; ++i)
     { 

@@ -48,6 +48,7 @@ private:
 
     Position newPoint; //Stores a new wall point
     Position prevPos; //Saves the point where the robot moved last
+    Position pathfindPos; //Saves the point that the robot is using A* to
 
     double yaw, goalYaw;
 
@@ -110,6 +111,8 @@ public:
 
     Position GetGoalPos();
 
+    list<Position> GetMovements();
+
     bool GetPathfinding();
 
     double GetRotation();
@@ -143,6 +146,13 @@ public:
     void EmptyNewPoint();
 
     void SetPathfinding(bool);
+
+    void SetPathfindingPoint(Position);
+
+    int GetMovementsSize();
+
+    Position GetPathfindingPoint();
+
 };
 
 
@@ -182,8 +192,24 @@ bool Turtlebot::GetPathfinding(){
     return pathfinding;
 }
 
+void Turtlebot::SetPathfindingPoint(Position pos){
+    pathfindPos = pos;
+}
+
 void Turtlebot::SetPathfinding(bool _value){
     pathfinding = _value;
+}
+
+Position Turtlebot::GetPathfindingPoint(){
+    return pathfindPos;
+}
+
+list<Position> Turtlebot::GetMovements(){
+    list<Position> positions; //List to return later
+    for(auto const& m : movements){
+        positions.push_back(m.goalPos);
+    }
+    return positions;
 }
 
 void Turtlebot::calcPrevPos(Position pos)
@@ -194,6 +220,10 @@ void Turtlebot::calcPrevPos(Position pos)
 int Turtlebot::GetId()
 {
     return id;
+}
+
+int Turtlebot::GetMovementsSize(){
+    return movements.size();
 }
 
 void Turtlebot::PrintPosition(Position pos, string text){
@@ -457,7 +487,7 @@ void Turtlebot::NewMovement(MovementType _movementType, double _goalRotation, Tu
 }
 
 void Turtlebot::GoalReached(Position _goal){
-    cout << "The goal has been reached by turtlebot [" << id << "]" << endl;
+    //cout << "The goal has been reached by turtlebot [" << id << "]" << endl;
     freeCell = _goal;
     movementState = idle;
     PrintPosition(_goal, "Goal Reached: ");

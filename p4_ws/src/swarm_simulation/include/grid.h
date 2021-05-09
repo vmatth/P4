@@ -231,8 +231,8 @@ public:
                 subAreaIntervalsPosition[x][y].startY = y * subAreaSize;
                 subAreaIntervalsPosition[x][y].endY = y * subAreaSize + subAreaSize;
 
-                cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Interval: (" << subAreaIntervals[x][y].startX << "," << subAreaIntervals[x][y].endX << ") y Interval: (" << subAreaIntervals[x][y].startY << "," << subAreaIntervals[x][y].endY << ")" << endl;
-                cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Pos Interval: (" << subAreaIntervalsPosition[x][y].startX << "," << subAreaIntervalsPosition[x][y].endX << ") y Pos Interval: (" << subAreaIntervalsPosition[x][y].startY << "," << subAreaIntervalsPosition[x][y].endY << ")" << endl;
+                //cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Interval: (" << subAreaIntervals[x][y].startX << "," << subAreaIntervals[x][y].endX << ") y Interval: (" << subAreaIntervals[x][y].startY << "," << subAreaIntervals[x][y].endY << ")" << endl;
+                //cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Pos Interval: (" << subAreaIntervalsPosition[x][y].startX << "," << subAreaIntervalsPosition[x][y].endX << ") y Pos Interval: (" << subAreaIntervalsPosition[x][y].startY << "," << subAreaIntervalsPosition[x][y].endY << ")" << endl;
             }
            
         }
@@ -314,7 +314,7 @@ public:
 
                 if(pos.x >= subAreaIntervalsPosition[x][y].startX && pos.x < subAreaIntervalsPosition[x][y].endX){
                     if(pos.y >= subAreaIntervalsPosition[x][y].startY && pos.y < subAreaIntervalsPosition[x][y].endY){
-                        cout << "Found Sub Area: [" << x << "][" << y << "] for pos (" << pos.x << "," << pos.y << ")" << endl;
+                        //cout << "Found Sub Area: [" << x << "][" << y << "] for pos (" << pos.x << "," << pos.y << ")" << endl;
                         Index subA;
                         subA.x = x;
                         subA.y = y;
@@ -387,7 +387,7 @@ public:
         Index cellIndex = GetCellIndex(cellPos);        
 
         if(cellIndex.x != -1){ //Check if the cell exists
-            cout << "Changing cell state(" << cellPos.x << " , " << cellPos.y << "), State: " << _state << endl;
+            //cout << "Changing cell state(" << cellPos.x << " , " << cellPos.y << "), State: " << _state << endl;
             grid[cellIndex.x][cellIndex.y] = _state;
         }
         else
@@ -401,11 +401,11 @@ public:
         Index subArea2 = GetSubArea(pos2);
 
         if(subArea1.x == subArea2.x && subArea1.y == subArea2.y){
-            cout << "Both positions are in same sub area!" << endl;
+            //cout << "Both positions are in same sub area!" << endl;
             return true;
         }
 
-        cout << "Positions are not in same sub area" << endl;
+        //cout << "Positions are not in same sub area" << endl;
         return false;
     }
     
@@ -414,7 +414,7 @@ public:
 
         Index cellIndex = GetCellIndex(cellPos);
         if(cellIndex.x != -1){
-            cout << "Cell Exists! (" << cellPos.x << "," << cellPos.y << ")" << endl;
+            //cout << "Cell Exists! (" << cellPos.x << "," << cellPos.y << ")" << endl;
             return true;
         }
         else{
@@ -429,7 +429,7 @@ public:
         Index cellIndex = GetCellIndex(cellPos);        
 
         if(cellIndex.x != -1){ //Check if the cell exists
-            cout << "Get Cell State for pos (" << cellPos.x << " , " << cellPos.y << "): " << grid[cellIndex.x][cellIndex.y] << endl;
+            //cout << "Get Cell State for pos (" << cellPos.x << " , " << cellPos.y << "): " << grid[cellIndex.x][cellIndex.y] << endl;
             return grid[cellIndex.x][cellIndex.y];
         } 
 
@@ -438,7 +438,7 @@ public:
     }
 
     int GetCellState(Index cellIndex){
-        cout << "Get Cell State for index: [" << cellIndex.x << "][" << cellIndex.y << "]: " << grid[cellIndex.x][cellIndex.y] << endl;
+       //cout << "Get Cell State for index: [" << cellIndex.x << "][" << cellIndex.y << "]: " << grid[cellIndex.x][cellIndex.y] << endl;
         return grid[cellIndex.x][cellIndex.y];
     }
 
@@ -477,24 +477,18 @@ public:
         //cout << "Up" << endl;
         if(CheckIfCellExists(upPos)){
             upAngle = abs(90 - yaw);
-            cout << "Up angle: " << upAngle << " | ";
+            //cout << "Up angle: " << upAngle << " | ";
         }
 
-        cout << "Down" << endl;
         if (CheckIfCellExists(downPos)){
             downAngle = abs(270 - yaw);
-            cout << "Down Angle: " << downAngle << " | ";
+            //cout << "Down Angle: " << downAngle << " | ";
         }
-
-       // PrintPosition(leftPos, "LeftPos");
-
-        cout << "Left" << endl;
         if (CheckIfCellExists(leftPos)){
             leftAngle = abs(180 - yaw);
-            cout << "Left Angle: " << leftAngle << " | ";
+            //cout << "Left Angle: " << leftAngle << " | ";
         }
 
-        cout << "Right" << endl;
         if (CheckIfCellExists(rightPos)){
             //quik mafs
             if(yaw > 180){
@@ -503,7 +497,7 @@ public:
             else{
                 rightAngle = abs(0 - yaw);
             }
-            cout << "Right Angle: " << rightAngle;
+            //cout << "Right Angle: " << rightAngle;
         }
 
         //Compare all angles, and find the closest one
@@ -525,7 +519,7 @@ public:
         Position front, right, left, back;
         //bruh those if statements
         if (index == 0){
-            cout << " || Up is front" << endl;
+            //cout << " || Up is front" << endl;
             front.x = upPos.x;
             front.y = upPos.y;
 
@@ -539,7 +533,7 @@ public:
             back.y = downPos.y;
 
         } else if (index == 1){
-            cout << " || Down is front" << endl;
+            //cout << " || Down is front" << endl;
             front.x = downPos.x;
             front.y = downPos.y;
 
@@ -553,7 +547,7 @@ public:
             back.y = upPos.y;
 
         } else if (index == 2){
-            cout << " || Right is front" << endl;
+            //cout << " || Right is front" << endl;
             front.x = rightPos.x;
             front.y = rightPos.y;
 
@@ -567,7 +561,7 @@ public:
             back.y = leftPos.y;
 
         } else if (index == 3){
-            cout << " || Left is front" << endl;
+            //cout << " || Left is front" << endl;
             front.x = leftPos.x;
             front.y = leftPos.y;
 
@@ -581,10 +575,10 @@ public:
             back.y = rightPos.y;
         } 
 
-        PrintPosition(front, "Front: ");
-        PrintPosition(right, "Right: ");
-        PrintPosition(left, "Left: ");
-        PrintPosition(back, "Back: ");
+       // PrintPosition(front, "Front: ");
+       // PrintPosition(right, "Right: ");
+       // PrintPosition(left, "Left: ");
+       // PrintPosition(back, "Back: ");
 
         if(GetCellState(front) == Unexplored && CompareSubAreas(front, currentPosition)){
             cout << "Front cell is unexplored!" << endl;
@@ -603,9 +597,28 @@ public:
             return back;
         } else {
             cout << "Find nearest unexplored cell" << endl;
-            return GetNearestCellPosition(currentPosition, Unexplored, true);
+            Position noPos;
+            noPos.x = -1;
+            return noPos; //Returns noPos so the program knows that it will switch from PSO to A*
+            //GetNearestCellPosition(currentPosition, Unexplored, true);
         }
     }
+
+    //Checks if pos1 and pos2 are "radius" distance from each other
+    bool ComparePositions(Position pos1, Position pos2, double distance){
+        Position relativePos;
+        relativePos.x = pos1.x - pos2.x;
+        relativePos.y = pos1.y - pos2.y;
+
+        if(abs(relativePos.x) < distance && abs(relativePos.y) < distance)
+        {
+            //cout << "Point measured is turtlbot [" << j << "]" << endl;
+            return true;
+        }  
+        return false;
+    }
+
+   
 
     //Checks if the newly marked point is close to any of the cells. If true, then it will nark the cell as "Wall"
     //Returns info on the cell that has been updated.
@@ -637,7 +650,7 @@ public:
                         cellInfo.pos.x = gridPositions[x][y].x;
                         cellInfo.pos.y = gridPositions[x][y].y;
 
-                        PrintPosition(gridPositions[x][y], "Marking wall at: ");
+                       // PrintPosition(gridPositions[x][y], "Marking wall at: ");
 
                         return cellInfo;
                     }
@@ -665,7 +678,7 @@ public:
     //Checks if the robot will collide with the goalPos, when a new wall has been found
     bool CheckForCollision(Position wallPos, Position goalPos){
         //cout << "Checking for collision" << endl;
-       // PrintPosition(wallPos, "wall pos");
+        //PrintPosition(wallPos, "wall pos");
         //PrintPosition(goalPos, "goal pos");
 
         float fuckX = 0.0f;
@@ -697,7 +710,6 @@ public:
         else{
             return false;
         }
-        //return true if they are the same
     }
 
     //Gets the cell that is closest to the the source position, and the cell must be state: "cell state"
@@ -744,7 +756,7 @@ public:
         Index i = GetNearestCellIndex(sourcePos, cellState, cellState, sameSubArea);
         //If a nearest cell was found
         if(i.x != 1){
-            cout << "Cell (" << gridPositions[i.x][i.y].x << "," << gridPositions[i.x][i.y].y << ") is near the source pos (" << sourcePos.x << "," << sourcePos.y << ")" << endl;
+            //cout << "Cell (" << gridPositions[i.x][i.y].x << "," << gridPositions[i.x][i.y].y << ") is near the source pos (" << sourcePos.x << "," << sourcePos.y << ")" << endl;
             nearestCell = gridPositions[i.x][i.y];
             return nearestCell;
         }
@@ -765,8 +777,8 @@ public:
         PrintPosition(startPos, "Starting pathfinding from: ");
         PrintPosition(endPos, "to: ");
 
-        cout << "Start Pos INDEX: (" << startPosIndex.x << "," << startPosIndex.y << ")" << endl;
-        cout << "End Pos INDEX: (" << endPosIndex.x << "," << endPosIndex.y << ")" << endl;
+        //cout << "Start Pos INDEX: (" << startPosIndex.x << "," << startPosIndex.y << ")" << endl;
+        //cout << "End Pos INDEX: (" << endPosIndex.x << "," << endPosIndex.y << ")" << endl;
 
         //Flip x & y before passing values to A*
         int temp;
@@ -798,41 +810,45 @@ public:
         cout << "------------------------------------" << endl;
 
         //Show the grid in terminal. Create a new grid "terminalGrid"
-        int **terminalGrid;
-        terminalGrid = new int*[rows];
-        for(int i = 0; i < rows; i++)
-            terminalGrid[i] = new int[rows];
+        if(i == 0){ //First check if there is a path. i = size of path list
+            cout << "The A* path is empty" << endl;
+        }
+        else{
+            int **terminalGrid;
+            terminalGrid = new int*[rows];
+            for(int i = 0; i < rows; i++)
+                terminalGrid[i] = new int[rows];
 
-        //Loop terminalGrid and copy "newGrid's" values to it,
-        for(int x = 0; x < rows; x++){
-            for(int y = 0; y < cols; y++){
-                terminalGrid[x][y] = newgrid[x][y];
-                //If the value is a path. Change to path to "2", this will be later visualized in the terminal
-                for (auto const& p : tempPos) {
-                    if(x == p.x && y == p.y){
-                        terminalGrid[x][y] = 2;
+            //Loop terminalGrid and copy "newGrid's" values to it,
+            for(int x = 0; x < rows; x++){
+                for(int y = 0; y < cols; y++){
+                    terminalGrid[x][y] = newgrid[x][y];
+                    //If the value is a path. Change to path to "2", this will be later visualized in the terminal
+                    for (auto const& p : tempPos) {
+                        if(x == p.x && y == p.y){
+                            terminalGrid[x][y] = 2;
+                        }
                     }
                 }
             }
-        }
 
-        //Show terminalGrid in the terminal
-        for (int i = rows - 1; i >= 0; i--)
-        {
-            for (int j = 0; j < rows; ++j)
+            //Show terminalGrid in the terminal
+            for (int i = rows - 1; i >= 0; i--)
             {
-                if(terminalGrid[j][i] == 0)
-                    std::cout << "X ";
-                else if(terminalGrid[j][i] == 1)
-                    std::cout << "- ";
-                else
-                    std::cout << "# "; //Show "+" if path
-            }
-            std::cout << std::endl;
-        }  
+                for (int j = 0; j < rows; ++j)
+                {
+                    if(terminalGrid[j][i] == 0)
+                        std::cout << "X ";
+                    else if(terminalGrid[j][i] == 1)
+                        std::cout << "- ";
+                    else
+                        std::cout << "# "; //Show "+" if path
+                }
+                std::cout << std::endl;
+            }  
 
-        return path;
-
+            return path;
+        }
     }
 
 
