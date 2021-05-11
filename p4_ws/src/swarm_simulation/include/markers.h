@@ -5,6 +5,7 @@
 #include "visualization_msgs/Marker.h"
 
 #include <position.h>
+#include <index.h>
 
 #include <unistd.h>
 
@@ -31,8 +32,9 @@ public:
     void RobotMarker(Position robotPos, int robotId);
     void UpdateRobotMarker(Position robotPos, int rob);
     void SetupRobotMarker();
-    void CellMarker(Position cellPos, State);
-    void CellMarkerUpdate(int ID, State state, Position cellPos);
+    bool IsEven(int x);
+    void CellMarker(Position cellPos, State state, Index subareaIndex, int size);
+    void CellMarkerUpdate(int ID, State state, Position cellPos, Index subAreaIndex, int size);
     void SetupCellMarker();
     void MLine(Position startPos, Position goalPos, int robotId);
     void SetupMlineMarker();
@@ -71,6 +73,14 @@ void Markers::SetupMlineMarker(){
 Markers::Markers(){
 
 }
+bool Markers::IsEven(int x){
+    if(x % 2 == 0){
+        return true;
+    } else{
+        return false;
+    }
+}
+
 
 void Markers::NewMarker(Position pos, int robotId)
 {
@@ -90,16 +100,16 @@ void Markers::NewMarker(Position pos, int robotId)
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
     marker.pose.orientation.w = 1.0;
-    marker.scale.x = 0.3;
-    marker.scale.y = 0.3;
-    marker.scale.z = 0.3;
-    marker.color.a = 1.0; // Don't forget to set the alpha!
+    marker.scale.x = 0.2;
+    marker.scale.y = 0.2;
+    marker.scale.z = 0.2;
+    marker.color.a = 0.7; // Don't forget to set the alpha!
 //    marker.color.r = 1.0;
 //    marker.color.g = 0.0;
 //    marker.color.b = 1.0;
     //only if using a MESH_RESOURCE marker type:
     //marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
-    marker.lifetime = ros::Duration();
+    marker.lifetime = ros::Duration(2);
 
     if (robotId == 0)
     {
@@ -188,7 +198,8 @@ void UpdateRobotMarker(){
     ;
 }
 
-void Markers::CellMarker(Position cellPos, State state)
+
+void Markers::CellMarker(Position cellPos, State state, Index subareaIndex, int size)
 {
 
     visualization_msgs::Marker marker;
@@ -210,27 +221,96 @@ void Markers::CellMarker(Position cellPos, State state)
     marker.scale.z = 0.1;
     marker.color.a = 0.7; // Don't forget to set the alpha!
 
-    if(state == Unexplored){
-       // cout << "This cell is unexplored" << endl;
-        marker.color.r = 1;
-        marker.color.g = 0;
-        marker.color.b = 1;
+    for(int x = 0; x < size; x++){ //i am good boi
+        for(int y = 0; y < size; y++){
+            if(subareaIndex.x == x && subareaIndex.y == y){
+                //cout << "Dette er inde i if-statement" << endl;
+                if(IsEven(y) == true){
+                    if(IsEven(x) == true){
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            marker.color.r = 0.8;
+                            marker.color.g = 0.1;
+                            marker.color.b = 0.8;
 
-    }   else if (state == Wall){
+                        }   else if (state == Wall){
 
-        marker.color.r = 0;
-        marker.color.g = 1;
-        marker.color.b = 1;
+                            marker.color.r = 0;
+                            marker.color.g = 1;
+                            marker.color.b = 1;
 
-    }   else if (state == Free){
-        //cout << "This cell is Free" << endl;
-        marker.color.r = 1;
-        marker.color.g = 1;
-        marker.color.b = 0;
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            marker.color.r = 1;
+                            marker.color.g = 1;
+                            marker.color.b = 0;
+                        }
+                    } else{
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            marker.color.r = 0.5;
+                            marker.color.g = 0.8;
+                            marker.color.b = 1;
+
+                        }   else if (state == Wall){
+
+                            marker.color.r = 0;
+                            marker.color.g = 1;
+                            marker.color.b = 1;
+
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            marker.color.r = 0.14;
+                            marker.color.g = 0.6;
+                            marker.color.b = 0.1;
+                        }
+                    }
+                } else if(IsEven(y) == false){
+                    if(IsEven(x) == false){
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            marker.color.r = 0.8;
+                            marker.color.g = 0.1;
+                            marker.color.b = 0.8;
+
+                        }   else if (state == Wall){
+
+                            marker.color.r = 0;
+                            marker.color.g = 1;
+                            marker.color.b = 1;
+
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            marker.color.r = 1;
+                            marker.color.g = 1;
+                            marker.color.b = 0;
+                        }
+                    } else{
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            marker.color.r = 0.5;
+                            marker.color.g = 0.8;
+                            marker.color.b = 1;
+
+                        }   else if (state == Wall){
+
+                            marker.color.r = 0;
+                            marker.color.g = 1;
+                            marker.color.b = 1;
+
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            marker.color.r = 0.14;
+                            marker.color.g = 0.6;
+                            marker.color.b = 0.1;
+                        }
+                    }
+                }
+            }  
+        }
     }
 
-
-    marker.lifetime = ros::Duration(10);
+    marker.lifetime = ros::Duration();
 
         for (uint32_t i = 0; i < 1; ++i)
     { 
@@ -245,7 +325,7 @@ void Markers::CellMarker(Position cellPos, State state)
     cellMarkerId++;
 }
 
-void Markers::CellMarkerUpdate(int ID, State state, Position cellPos)
+void Markers::CellMarkerUpdate(int ID, State state, Position cellPos, Index subareaIndex, int size)
 {
     visualization_msgs::Marker cellmarker;
     cellmarker.header.frame_id = "map";
@@ -260,24 +340,113 @@ void Markers::CellMarkerUpdate(int ID, State state, Position cellPos)
     cellmarker.color.a = 0.7; // Don't forget to set the alpha!
     cellmarker.lifetime = ros::Duration();
 
-    if(state == Unexplored){
+    for(int x = 0; x < size; x++){ //i am good boi
+        for(int y = 0; y < size; y++){
+            if(subareaIndex.x == x && subareaIndex.y == y){
+                //cout << "Dette er inde i if-statement" << endl;
+                if(IsEven(y) == true){
+                    if(IsEven(x) == true){
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            cellmarker.color.r = 0.8;
+                            cellmarker.color.g = 0.1;
+                            cellmarker.color.b = 0.8;
 
-        cellmarker.color.r = 1;
-        cellmarker.color.g = 0;
-        cellmarker.color.b = 1;
+                        }   else if (state == Wall){
 
-    }   else if (state == Wall){
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 1;
 
-        cellmarker.color.r = 1;
-        cellmarker.color.g = 1;
-        cellmarker.color.b = 1;
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 0;
+                        }
+                    } else{
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            cellmarker.color.r = 0.5;
+                            cellmarker.color.g = 0.8;
+                            cellmarker.color.b = 1;
 
-    }   else if (state == Free){
+                        }   else if (state == Wall){
 
-        cellmarker.color.r = 1;
-        cellmarker.color.g = 1;
-        cellmarker.color.b = 0;
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 1;
+
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            cellmarker.color.r = 0.14;
+                            cellmarker.color.g = 0.6;
+                            cellmarker.color.b = 0.1;
+                        }
+                    }
+                } else if(IsEven(y) == false){
+                    if(IsEven(x) == false){
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            cellmarker.color.r = 0.8;
+                            cellmarker.color.g = 0.1;
+                            cellmarker.color.b = 0.8;
+
+                        }   else if (state == Wall){
+
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 1;
+
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 0;
+                        }
+                    } else{
+                        if(state == Unexplored){
+                        // cout << "This cell is unexplored" << endl;
+                            cellmarker.color.r = 0.5;
+                            cellmarker.color.g = 0.8;
+                            cellmarker.color.b = 1;
+
+                        }   else if (state == Wall){
+
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 1;
+
+                        }   else if (state == Free){
+                            //cout << "This cell is Free" << endl;
+                            cellmarker.color.r = 0.14;
+                            cellmarker.color.g = 0.6;
+                            cellmarker.color.b = 0.1;
+                        }
+                    }
+                }
+            }  
+        }
     }
+
+    // if(state == Unexplored){
+
+    //     cellmarker.color.r = 1;
+    //     cellmarker.color.g = 0;
+    //     cellmarker.color.b = 1;
+
+    // }   else if (state == Wall){
+
+    //     cellmarker.color.r = 1;
+    //     cellmarker.color.g = 1;
+    //     cellmarker.color.b = 1;
+
+    // }   else if (state == Free){
+
+    //     cellmarker.color.r = 1;
+    //     cellmarker.color.g = 1;
+    //     cellmarker.color.b = 0;
+    // }
 
         for (uint32_t i = 0; i < 1; ++i)
     { 

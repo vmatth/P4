@@ -403,17 +403,17 @@ void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg)
     //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
-    if(id == 0 && msg->data[0] == 104){
+    if(id == 0 && msg->data[0] == 104){ //box world: 104. office = 107
         //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         range = msg->data[1];
         angle = msg->data[2];
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 1 && msg->data[0] == 1748){
+    else if(id == 1 && msg->data[0] == 1748){ //box world 1748. office = 1751
         //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 2 && msg->data[0] == 3392){
+    else if(id == 2 && msg->data[0] == 3392){ //box world 3392. office = 3395
         //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }     
@@ -638,7 +638,7 @@ void Turtlebot::Move(){
             cmd_vel_message.angular.z = gamma/180 * PI;
 
             //If the robots angle is in the margin (Rotated correctly)
-            if(gamma < 2 && gamma > -2){
+            if(gamma < 4 && gamma > -4){
                 //cout << "PosDiffernce: (" << posDifference.x << ", " << posDifference.y << ")" << endl;
                 //cout << "PosDiff Abosulte: (" << abs(posDifference.x) << ", " << abs(posDifference.y) << ")" << endl;
                 

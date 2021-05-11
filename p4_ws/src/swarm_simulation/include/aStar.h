@@ -67,10 +67,10 @@ double calculateHValue(int row, int col, Pair dest)
  
 // A Utility Function to trace the path from the source
 // to destination
-void tracePath(cell **cellDetails, Pair dest)
+void tracePath(cell **cellDetails, Pair dest, bool print)
 {
 
-    printf("\nThe Path is ");
+    if(print) printf("\nThe Path is ");
     int row = dest.first;
     int col = dest.second;
  
@@ -93,7 +93,7 @@ void tracePath(cell **cellDetails, Pair dest)
         newPos.y = p.second;
         positions.push_back(newPos);
         Path.pop();
-        printf("-> (%d,%d) ", p.first, p.second);
+        if(print) printf("-> (%d,%d) ", p.first, p.second);
     }
  
     return;
@@ -102,20 +102,20 @@ void tracePath(cell **cellDetails, Pair dest)
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
+void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL, bool print)
 {
     ROW = _ROW;
     COL = _COL;
 
     // If the source is out of range
     if (isValid(src.first, src.second) == false) {
-        printf("Source is invalid\n");
+        if(print) printf("Source is invalid\n");
         return;
     }
  
     // If the destination is out of range
     if (isValid(dest.first, dest.second) == false) {
-        printf("Destination is invalid\n");
+        if(print) printf("Destination is invalid\n");
         return;
     }
  
@@ -123,14 +123,14 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
     if (isUnBlocked(grid, src.first, src.second) == false
         || isUnBlocked(grid, dest.first, dest.second)
                == false) {
-        printf("Source or the destination is blocked\n");
+        if(print) printf("Source or the destination is blocked\n");
         return;
     }
  
     // If the destination cell is the same as source cell
     if (isDestination(src.first, src.second, dest)
         == true) {
-        printf("We are already at the destination\n");
+        if(print) printf("We are already at the destination\n");
         return;
     }
  
@@ -233,8 +233,8 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
                 // Set the Parent of the destination cell
                 cellDetails[i - 1][j].parent_i = i;
                 cellDetails[i - 1][j].parent_j = j;
-                printf("The destination cell is found\n");
-                tracePath(cellDetails, dest);
+                if(print) printf("The destination cell is found\n");
+                tracePath(cellDetails, dest, print);
                 foundDest = true;
                 return;
             }
@@ -281,8 +281,8 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
                 // Set the Parent of the destination cell
                 cellDetails[i + 1][j].parent_i = i;
                 cellDetails[i + 1][j].parent_j = j;
-                printf("The destination cell is found\n");
-                tracePath(cellDetails, dest);
+                if(print) printf("The destination cell is found\n");
+                tracePath(cellDetails, dest, print);
                 foundDest = true;
                 return;
             }
@@ -328,8 +328,8 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
                 // Set the Parent of the destination cell
                 cellDetails[i][j + 1].parent_i = i;
                 cellDetails[i][j + 1].parent_j = j;
-                printf("The destination cell is found\n");
-                tracePath(cellDetails, dest);
+                if(print) printf("The destination cell is found\n");
+                tracePath(cellDetails, dest, print);
                 foundDest = true;
                 return;
             }
@@ -377,8 +377,8 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
                 // Set the Parent of the destination cell
                 cellDetails[i][j - 1].parent_i = i;
                 cellDetails[i][j - 1].parent_j = j;
-                printf("The destination cell is found\n");
-                tracePath(cellDetails, dest);
+                if(print) printf("The destination cell is found\n");
+                tracePath(cellDetails, dest, print);
                 foundDest = true;
                 return;
             }
@@ -622,13 +622,13 @@ void aStarSearch(int **grid, Pair src, Pair dest, int _ROW, int _COL)
     // there is no way to destination cell (due to
     // blockages)
     if (foundDest == false)
-        printf("Failed to find the Destination Cell\n");
+        if(print) printf("Failed to find the Destination Cell\n");
  
     return;
 }
  
 // Driver program to test above function
-list<Index> aStarPATH(int **grid, int row, int col, Index startPos, Index endPos)
+list<Index> aStarPATH(int **grid, int row, int col, Index startPos, Index endPos, bool print)
 {
 
 
@@ -654,12 +654,9 @@ list<Index> aStarPATH(int **grid, int row, int col, Index startPos, Index endPos
     // Destination is (y,x)
     Pair dest = make_pair(endPos.y, endPos.x);
 
-    int num = positions.size();
-    for(int i = 0; i < num; i++){
-        positions.pop_front(); //empty list because c++ is ass and empty doesnt work
-    }
+    positions.clear();
 
-    aStarSearch(grid, src, dest, row, col);
+    aStarSearch(grid, src, dest, row, col, print);
 
     return positions;
 }

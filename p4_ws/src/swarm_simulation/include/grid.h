@@ -175,10 +175,10 @@ private:
 
     //Grid contains information of which subarea the cell is in
     //The grid will look something like:
-    // 2 2 3 3
-    // 2 2 3 3
-    // 0 0 1 1
-    // 0 0 1 1
+    // [0,1] [0,1] [1,1] [1,1] 
+    // [0,1] [0,1] [1,1] [1,1]
+    // [0,0] [0,0] [1,0] [1,0]
+    // [0,0] [0,0] [1,0] [1,0]
     Index** gridSubAreas;
 
     //Add a position (x,y) for each grid
@@ -193,6 +193,15 @@ private:
 
     int rows, cols;
 public:
+
+    int GetNumSubAreasSqrt(){
+        return numSubAreasSqrt;
+    }
+
+    Index GetSubAreaIndex(Index i){
+        return gridSubAreas[i.x][i.y];
+    }
+
     //Super Area constructor. Creates SubAreas inside. numSubAreas can be 2², 3², 4² ...
     SuperArea(int size, int _numSubAreas, double _cellDistance){
 
@@ -200,8 +209,10 @@ public:
         cellDistance = _cellDistance;
 
         cout << "New grid with Size: " << size << ", cell distance: " << cellDistance << " and num of sub areas: " << numSubAreas << endl;
-        rows = size / cellDistance;
-        cols = size / cellDistance;
+        float calc = size / cellDistance; //Calculate using floats due to decimals in cellDistance
+        
+        rows = round(calc); //Convert to int like this becuase cass++
+        cols = round(calc);
         cout << "Rows & Cols: " << rows << endl;
 
         numSubAreasSqrt = int(sqrt(numSubAreas));
@@ -231,8 +242,8 @@ public:
                 subAreaIntervalsPosition[x][y].startY = y * subAreaSize;
                 subAreaIntervalsPosition[x][y].endY = y * subAreaSize + subAreaSize;
 
-                //cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Interval: (" << subAreaIntervals[x][y].startX << "," << subAreaIntervals[x][y].endX << ") y Interval: (" << subAreaIntervals[x][y].startY << "," << subAreaIntervals[x][y].endY << ")" << endl;
-                //cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Pos Interval: (" << subAreaIntervalsPosition[x][y].startX << "," << subAreaIntervalsPosition[x][y].endX << ") y Pos Interval: (" << subAreaIntervalsPosition[x][y].startY << "," << subAreaIntervalsPosition[x][y].endY << ")" << endl;
+                cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Interval: (" << subAreaIntervals[x][y].startX << "," << subAreaIntervals[x][y].endX << ") y Interval: (" << subAreaIntervals[x][y].startY << "," << subAreaIntervals[x][y].endY << ")" << endl;
+                cout << "SubArea [" << x << "]" << "[" << y << "]" << " x Pos Interval: (" << subAreaIntervalsPosition[x][y].startX << "," << subAreaIntervalsPosition[x][y].endX << ") y Pos Interval: (" << subAreaIntervalsPosition[x][y].startY << "," << subAreaIntervalsPosition[x][y].endY << ")" << endl;
             }
            
         }
@@ -297,6 +308,25 @@ public:
                 id++;
             }
         }
+
+        //Print subareas grid
+        //Show  in the terminal
+
+        // for (int i = rows - 1; i >= 0; i--)
+        // {
+        //     for (int j = 0; j < rows; ++j)
+        //     {
+        //         if(gridSubAreas[j][i].x == 0 && gridSubAreas[j][i].y == 0)
+        //             cout << "0 ";
+        //         else if(gridSubAreas[j][i].x == 1 && gridSubAreas[j][i].y == 0)
+        //             cout << "1 ";
+        //         else if(gridSubAreas[j][i].x == 0 && gridSubAreas[j][i].y == 1)
+        //             cout << "2 ";                    
+        //         else if(gridSubAreas[j][i].x == 1 && gridSubAreas[j][i].y == 1)
+        //             cout << "3 ";
+        //     }
+        //     std::cout << std::endl;
+        // }  
         
     }
 
@@ -334,8 +364,8 @@ public:
     Index GetCellIndex(Position pos){
         Index cellIndex;
         //Convert the position to int, as it is easier to compare due to decimals
-        float xf = pos.x * 10;
-        float yf = pos.y * 10;
+        float xf = pos.x * 100;
+        float yf = pos.y * 100;
 
         int x_ = xf;
         int y_ = yf;
@@ -344,8 +374,8 @@ public:
         for(int x = 0; x < rows; x++){
             for(int y = 0; y < cols; y++){
                 //Convert the position to int, as it is easier to compare due to decimals
-                float _xf = gridPositions[x][y].x * 10;
-                float _yf = gridPositions[x][y].y * 10;
+                float _xf = gridPositions[x][y].x * 100;
+                float _yf = gridPositions[x][y].y * 100;
 
                 int _x = _xf;
                 int _y = _yf;    
@@ -622,7 +652,7 @@ public:
 
     //Checks if the newly marked point is close to any of the cells. If true, then it will nark the cell as "Wall"
     //Returns info on the cell that has been updated.
-    CellInfo NewWallPoint(Position wallPos){
+    CellInfo NewWallPoint(Position wallPos, float cellSpace){
 
         CellInfo cellInfo; //Returns info on the cell that has been updated. Used for rviz marker    
 
@@ -638,7 +668,7 @@ public:
                 relativeCell.y = gridPositions[x][y].y - wallPos.y;
 
                 //If the relativePosition is low (the wall is close to this cell position)
-                if(abs(relativeCell.x) < 0.2 && abs(relativeCell.y) < 0.2)
+                if(abs(relativeCell.x) < (cellSpace/2) && abs(relativeCell.y) < (cellSpace/2))
                 {
 
                     //Check if the point hasn't already been marked as wall
@@ -684,8 +714,8 @@ public:
         float fuckX = 0.0f;
         float fuckY = 0.0f;
 
-        fuckX = wallPos.x * 10;
-        fuckY = wallPos.y * 10;
+        fuckX = wallPos.x * 100;
+        fuckY = wallPos.y * 100;
 
         int x = fuckX;
         int y = fuckY;
@@ -695,8 +725,8 @@ public:
         float _fuckX = 0.0f;
         float _fuckY = 0.0f;
 
-        _fuckX = goalPos.x * 10;
-        _fuckY = goalPos.y * 10;
+        _fuckX = goalPos.x * 100;
+        _fuckY = goalPos.y * 100;
 
         int _x = _fuckX;
         int _y = _fuckY;
@@ -742,6 +772,7 @@ public:
                     }
                 }
             }
+
         }
 
         if(nearestCell.x == -1)
@@ -765,10 +796,153 @@ public:
         nearestCell.y = -1;
         return nearestCell;
     }
-  
 
+    //Finds the nearest cell in the same subarea using AStar
+    Position GetNearestCellAStar(Position sourcePos, State cellState){
+        int shortestPathSize = 1000; //Temp value
+        list<Position> shortestPath;
+        for (int r = 0; r < rows; r++){
+            for (int c = 0; c < cols; c++){
+                if (grid[r][c] == cellState){
+                    if (CompareSubAreas(sourcePos, gridPositions[r][c])){
 
-    list<Position> AStarPathfinding(Position startPos, Position endPos){
+                        Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                        Index endPosIndex;
+                        endPosIndex.x = r;
+                        endPosIndex.y = c;
+
+                        //Flip (x,y) to (y,x) as A* uses (y,x)
+                        startPosIndex = FlipPos(startPosIndex);
+                        endPosIndex = FlipPos(endPosIndex);
+
+                        //Converts to grid to a new grid that A* can use
+                        gridtoaStar();
+
+                        list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
+                        tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex, false);
+
+                        //Get the path size
+                        int pathSize = 0;
+                        for(auto const& p : tempPos){
+                            pathSize++;
+                        }
+                        
+
+                        //Compare the new path size to the one that is currently shortest
+                        if(pathSize < shortestPathSize && pathSize != 0){ //If new path is shorter than the previous
+                            //First check if the new path does not go outside of the subarea.
+
+                            //Loop all of the new path positions
+                            bool pathOutsideSubArea = false;
+                            for(auto const&p : tempPos){
+                                //If one of the new path is outside the subarea
+                                if(CompareSubAreas(sourcePos, gridPositions[int(p.x)][int(p.y)]) == false){
+                                    pathOutsideSubArea = true;
+                                }
+                            }
+                            
+                            //Use this path, if the it is inside the same subarea
+                            if(pathOutsideSubArea == false){
+                                shortestPath.clear(); //Clear current shortestPath
+                                //Store new path
+                                shortestPathSize = pathSize;
+                                for (auto const& p : tempPos) {
+                                    Position newPos = gridPositions[int(p.x)][int(p.y)];
+                                    shortestPath.push_back(newPos);  
+
+                                }    
+                            }
+                        }       
+                    }
+                }
+            }
+        }
+        //Print the path
+        cout << "Nearest Cell using AStar: " << endl;
+        for (auto const& p : shortestPath) {
+            cout << "-> ";
+            cout << "(" << p.x << "," << p.y << ")"; 
+        }          
+        cout << " " << endl;
+
+        //If A* could not find any position, return (-1, -1)
+        if(shortestPath.empty()){
+            cout << "Nearest cell not found using A*" << endl;
+            Position emptyPos;
+            emptyPos.x = -1;
+            emptyPos.y = -1;
+            return emptyPos;
+        }
+        return shortestPath.back();
+    }
+
+    //Finds the nearest cell in another subArea
+    Position GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState){
+        cout << "Get nearest cell in another SubArea" << endl;
+        int shortestPathSize = 1000; //Temp value
+        list<Position> shortestPath;
+        for (int r = 0; r < rows; r++){
+            for (int c = 0; c < cols; c++){
+                if (grid[r][c] == cellState){
+                    if (CompareSubAreas(sourcePos, gridPositions[r][c]) == false){
+
+                        Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                        Index endPosIndex;
+                        endPosIndex.x = r;
+                        endPosIndex.y = c;
+
+                        //Flip (x,y) to (y,x) as A* uses (y,x)
+                        startPosIndex = FlipPos(startPosIndex);
+                        endPosIndex = FlipPos(endPosIndex);
+
+                        //Converts to grid to a new grid that A* can use
+                        gridtoaStar();
+
+                        list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
+                        tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex, false);
+
+                        //Get the path size
+                        int pathSize = 0;
+                        for(auto const& p : tempPos){
+                            pathSize++;
+                        }
+                        
+
+                        //Compare the new path size to the one that is currently shortest
+                        if(pathSize < shortestPathSize && pathSize != 0){ //If new path is shorter than the previous
+                            shortestPath.clear(); //Clear current shortestPath
+                            //Store new path
+                            shortestPathSize = pathSize;
+                            for (auto const& p : tempPos) {
+                                Position newPos = gridPositions[int(p.x)][int(p.y)];
+                                shortestPath.push_back(newPos);  
+
+                            }                           
+                        }       
+                    }
+                }
+            }
+        }
+        //Print the path
+        cout << "Nearest Cell in another sub area using AStar: " << endl;
+        for (auto const& p : shortestPath) {
+            cout << "-> ";
+            cout << "(" << p.x << "," << p.y << ")"; 
+        }          
+        cout << " " << endl;
+
+        //If A* could not find any position, return (-1, -1)
+        if(shortestPath.empty()){
+            cout << "Nearest cell outside sub area not found using A*" << endl;
+            Position emptyPos;
+            emptyPos.x = -1;
+            emptyPos.y = -1;
+            return emptyPos;
+        }
+        return shortestPath.back();
+    }
+
+    list<Position> AStarPathfinding(Position startPos, Position endPos, bool print){
 
         //GetNearestCellPosition(endPos, Unexplored, false);
         Index endPosIndex = GetNearestCellIndex(endPos, Unexplored, Unexplored, false);
@@ -780,20 +954,15 @@ public:
         //cout << "Start Pos INDEX: (" << startPosIndex.x << "," << startPosIndex.y << ")" << endl;
         //cout << "End Pos INDEX: (" << endPosIndex.x << "," << endPosIndex.y << ")" << endl;
 
-        //Flip x & y before passing values to A*
-        int temp;
-        temp = startPosIndex.x;
-        startPosIndex.x = startPosIndex.y;
-        startPosIndex.y = temp;
-        temp = endPosIndex.x;
-        endPosIndex.x = endPosIndex.y;
-        endPosIndex.y = temp;
+        //Flip (x,y) to (y,x) as A* uses (y,x)
+        startPosIndex = FlipPos(startPosIndex);
+        endPosIndex = FlipPos(endPosIndex);
 
         //Converts to grid to a new grid that A* can use
         gridtoaStar();
 
         list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
-        tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex);
+        tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex, true);
 
         list<Position> path; //The positions from A* will be stored in this list (as positions)
 
@@ -813,7 +982,7 @@ public:
         if(i == 0){ //First check if there is a path. i = size of path list
             cout << "The A* path is empty" << endl;
         }
-        else{
+        else if(print){
             int **terminalGrid;
             terminalGrid = new int*[rows];
             for(int i = 0; i < rows; i++)
@@ -877,17 +1046,19 @@ public:
             }
         }
 
-        /*for (int i = rows - 1; i >= 0; i--)
-        {
-            for (int j = 0; j < rows; ++j)
-            {
-                std::cout << newgrid[j][i] << ' ';
-            }
-            std::cout << std::endl;
-        }  */
-
     }
 
+    //Flip x & y for AStar, as AStar uses (y,x) instead of (x,y)
+    Index FlipPos(Index pos){
+        //Flip x & y before passing values to A*
+        int temp;
+        temp = pos.x;
+        pos.x = pos.y;
+        pos.y = temp;
+        return pos;
+    }
+
+    //Used to test A*
     void AAA(){
         int **grod;
         grod = new int*[4];
@@ -946,7 +1117,7 @@ public:
 
         list<Index> tempPos;
 
-        tempPos = aStarPATH(grod, 4, 4, startPosIndex, endPosIndex);
+        tempPos = aStarPATH(grod, 4, 4, startPosIndex, endPosIndex, true);
 
         list<Position> path;
 
