@@ -360,9 +360,15 @@ void Markers::CellMarkerUpdate(int ID, State state, Position cellPos, Index suba
 
                         }   else if (state == Free){
                             //cout << "This cell is Free" << endl;
+                            cellmarker.color.r = 0.14;
+                            cellmarker.color.g = 0.6;
+                            cellmarker.color.b = 0.1;
+                        }   else if (state == TempWall){
+
                             cellmarker.color.r = 1;
-                            cellmarker.color.g = 1;
+                            cellmarker.color.g = 0;
                             cellmarker.color.b = 0;
+
                         }
                     } else{
                         if(state == Unexplored){
@@ -379,9 +385,15 @@ void Markers::CellMarkerUpdate(int ID, State state, Position cellPos, Index suba
 
                         }   else if (state == Free){
                             //cout << "This cell is Free" << endl;
-                            cellmarker.color.r = 0.14;
-                            cellmarker.color.g = 0.6;
-                            cellmarker.color.b = 0.1;
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 0;
+                        }   else if (state == TempWall){
+
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 0;
+                            cellmarker.color.b = 0;
+
                         }
                     }
                 } else if(IsEven(y) == false){
@@ -400,9 +412,15 @@ void Markers::CellMarkerUpdate(int ID, State state, Position cellPos, Index suba
 
                         }   else if (state == Free){
                             //cout << "This cell is Free" << endl;
-                            cellmarker.color.r = 1;
+                            cellmarker.color.r = 0.14;
+                            cellmarker.color.g = 0.6;
+                            cellmarker.color.b = 0.1;
+                        }   else if (state == TempWall){
+
+                            cellmarker.color.r = 0;
                             cellmarker.color.g = 1;
-                            cellmarker.color.b = 0;
+                            cellmarker.color.b = 1;
+
                         }
                     } else{
                         if(state == Unexplored){
@@ -419,9 +437,15 @@ void Markers::CellMarkerUpdate(int ID, State state, Position cellPos, Index suba
 
                         }   else if (state == Free){
                             //cout << "This cell is Free" << endl;
-                            cellmarker.color.r = 0.14;
-                            cellmarker.color.g = 0.6;
-                            cellmarker.color.b = 0.1;
+                            cellmarker.color.r = 1;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 0;
+                        }   else if (state == TempWall){
+
+                            cellmarker.color.r = 0;
+                            cellmarker.color.g = 1;
+                            cellmarker.color.b = 1;
+
                         }
                     }
                 }

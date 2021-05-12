@@ -708,8 +708,6 @@ public:
     //Checks if the robot will collide with the goalPos, when a new wall has been found
     bool CheckForCollision(Position wallPos, Position goalPos){
         //cout << "Checking for collision" << endl;
-        //PrintPosition(wallPos, "wall pos");
-        //PrintPosition(goalPos, "goal pos");
 
         float fuckX = 0.0f;
         float fuckY = 0.0f;
@@ -780,11 +778,11 @@ public:
         return nearestCell;
     }
 
-    Position GetNearestCellPosition(Position sourcePos, State cellState, bool sameSubArea){
+    Position GetNearestCellPosition(Position sourcePos, State cellState, State secondState, bool sameSubArea){
         Position nearestCell; //Position that will be returned
 
         //Use same function for finding index
-        Index i = GetNearestCellIndex(sourcePos, cellState, cellState, sameSubArea);
+        Index i = GetNearestCellIndex(sourcePos, cellState, secondState, sameSubArea);
         //If a nearest cell was found
         if(i.x != 1){
             //cout << "Cell (" << gridPositions[i.x][i.y].x << "," << gridPositions[i.x][i.y].y << ") is near the source pos (" << sourcePos.x << "," << sourcePos.y << ")" << endl;
@@ -857,6 +855,10 @@ public:
                 }
             }
         }
+        if(shortestPathSize == 2){
+            shortestPath.pop_front();
+        }
+
         //Print the path
         cout << "Nearest Cell using AStar: " << endl;
         for (auto const& p : shortestPath) {

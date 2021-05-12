@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -71,6 +72,11 @@ private:
 
     bool pathfinding = false; //If the robot is using A*. If yes, it will not ignore the "front right left" check everytime it reaches a new cell.
     //If false it will find the next cell after it reaches another cell.
+
+    bool avoiding = false; //If the robot is avoiding collision with another robot!
+
+    double speed = 0.3;
+    double rotationSpeed = 1;
 
 public:
 
@@ -153,6 +159,14 @@ public:
 
     Position GetPathfindingPoint();
 
+    void SetAvoiding(bool);
+
+    bool GetAvoiding();
+
+    void PauseMovement(); //Stops the movement by setting speed to 0.
+
+    void ResumeMovement(); //Resumes by reverting the speed
+
 };
 
 
@@ -226,8 +240,26 @@ int Turtlebot::GetMovementsSize(){
     return movements.size();
 }
 
+void Turtlebot::SetAvoiding(bool _avoid){
+    avoiding = _avoid;
+}
+
+bool Turtlebot::GetAvoiding(){
+    return avoiding;
+}
+
 void Turtlebot::PrintPosition(Position pos, string text){
     cout << text << "(" << pos.x << ", " << pos.y << ")" << endl;
+}
+
+void Turtlebot::PauseMovement(){
+    speed = 0;
+    rotationSpeed = 0;
+}
+
+void Turtlebot::ResumeMovement(){
+    speed = 0.3;
+    rotationSpeed = 1;
 }
 
 //Updates to robot pos by adding Odometry Position to startPos.
@@ -554,7 +586,7 @@ void Turtlebot::Move(){
             }
 
             //If the robots angle is in the margin (Rotated correctly)
-            cmd_vel_message.angular.z = gamma/180 * PI;
+            cmd_vel_message.angular.z = gamma/180 * PI * rotationSpeed;
 
             cmd_vel_message.linear.x = 0;
 
@@ -635,7 +667,7 @@ void Turtlebot::Move(){
 
             // cout << "Gamma (Rads): " << (gamma/180 * PI) << endl; //forskel i vinklerne
 
-            cmd_vel_message.angular.z = gamma/180 * PI;
+            cmd_vel_message.angular.z = gamma/180 * PI * rotationSpeed;
 
             //If the robots angle is in the margin (Rotated correctly)
             if(gamma < 4 && gamma > -4){
@@ -644,7 +676,7 @@ void Turtlebot::Move(){
                 
                 //If the robot isn't near the goalPos: Keep moving
                 if((abs(relativeGoal.x) > 0.08) || (abs(relativeGoal.y) > 0.08)){
-                    cmd_vel_message.linear.x = 0.3;
+                    cmd_vel_message.linear.x = speed;
                 }
                 //If the robot has reached the goalPos
                 else{

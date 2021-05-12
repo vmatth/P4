@@ -1,7 +1,7 @@
 #pragma once
 
 
-enum State{Wall, Unexplored, Free};
+enum State{Wall, Unexplored, Free, TempWall};
 
 enum MovementState{idle, direct, turning, wall};
 
