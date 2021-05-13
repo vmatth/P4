@@ -56,7 +56,7 @@
             <min>0.2</min>
 
             <!-- Maximum distance of the beam -->
-            <max>0.8</max>
+            <max>0.75</max>
 
             <!-- Linear resolution of the beam -->
             <resolution>0.02</resolution>

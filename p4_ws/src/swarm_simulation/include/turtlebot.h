@@ -78,6 +78,8 @@ private:
     double speed = 0.3;
     double rotationSpeed = 1;
 
+    bool forcePathfind = false;
+
 public:
 
     //Callback function that is called each time odometry is updated
@@ -166,6 +168,14 @@ public:
     void PauseMovement(); //Stops the movement by setting speed to 0.
 
     void ResumeMovement(); //Resumes by reverting the speed
+
+    void SetForcePathfind(bool _value){
+        forcePathfind = _value;
+    }
+
+    bool GetForcePathfind(){
+        return forcePathfind;
+    }
 
 };
 
@@ -435,17 +445,17 @@ void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg)
     //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
-    if(id == 0 && msg->data[0] == 104){ //box world: 104. office = 107
+    if(id == 0 && msg->data[0] == 102){ //box world: 104. office = 107. newoffice 102
         //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         range = msg->data[1];
         angle = msg->data[2];
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 1 && msg->data[0] == 1748){ //box world 1748. office = 1751
+    else if(id == 1 && msg->data[0] == 1746){ //box world 1748. office = 1751. newoffice 1746
         //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 2 && msg->data[0] == 3392){ //box world 3392. office = 3395
+    else if(id == 2 && msg->data[0] == 3390){ //box world 3392. office = 3395. newoffice 3390
         //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }     

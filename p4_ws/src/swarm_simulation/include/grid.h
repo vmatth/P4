@@ -26,128 +26,6 @@ struct Grid{
     double size; //x & y size of the grid
 };
 
-/*class Cell{
-private:
-    Grid grid;
-    State state = Unexplored;
-public:
-
-    void UpdateState(State status){
-        state = status;
-    }
-
-    Cell(){
-        cout << "Cell" << endl;
-    }
-    
-    Cell(double cellSize, Position pos){
-        grid.size = cellSize;
-        grid.pos = pos;
-
-    }
-
-    Position GetPosition(){
-        return grid.pos;
-    }
-
-    int GetState(){
-        return state;
-    }
-
-    
-};*/
-
-/*class SubArea{
-private:
-    Grid grid;
-    Index index;
-
-public:
-
-    vector<Cell> cells;
-
-    double getsubGridSize(){
-        return grid.size;
-        
-    }
-    
-    //Constructor for Sub Areas. Creates cells inside each subarea.
-    SubArea(double size, Position pos, double cellSize, Index _index){
-        grid.size = size;
-        grid.pos = pos;
-        index = _index;
-
-        //Creates cells inside SubArea
-        //cout << "Creating new Cell with size: " << cellSize << endl;
-
-        //cout << "Cell Size: " << cellSize << endl;
-        int numCells = (size / cellSize) * (size / cellSize); 
-
-       // cout << "Number of cells: " << numCells << endl;
-
-        for(int y = 0; y < sqrt(numCells); y++){
-            for(int x = 0; x < sqrt(numCells); x++){
-                //cout << "(x: " << x << ", y: " << y << ")" << endl;
-
-                Position newPos;
-                newPos.x = (x * cellSize) + (cellSize/2) + grid.pos.x;
-                newPos.y = (y * cellSize) + (cellSize/2) + grid.pos.y;
-
-                Cell cell(cellSize, newPos);
-
-                cells.push_back(cell);
-                
-            }
-        }
-
-
-    }
-
-    // Returns start position of specific sub area
-    Position GetPosition(){
-        return grid.pos;
-    }
-
-    int GetCellIndex(Position cellPos){
-        //Loop all cells in the subArea
-
-        //Convert the position to ints or else this doesn't work and no idea why
-
-        float fuckX = 0.0f;
-        float fuckY = 0.0f;
-
-        fuckX = cellPos.x * 10;
-        fuckY = cellPos.y * 10;
-
-        int x = fuckX;
-        int y = fuckY;
-
-        // int x = cellPos.x * 10;
-        // int y = cellPos.y * 10;
-
-        //cout << "x: " << x << " y:" << y << endl; 
-
-        for(int i = 0; i < cells.size(); i++){
-            //Convert to int again cuz I'm on x-games mode
-
-            float _fuckX = 0.0f;
-            float _fuckY = 0.0f;
-            _fuckX = cells[i].GetPosition().x * 10;
-            _fuckY = cells[i].GetPosition().y * 10;
-
-            int _x = _fuckX;
-            int _y = _fuckY;    
-            
-
-            if(x == _x && y == _y){
-                cout << "_x: " << _x << " _y:" << _y << endl; 
-                return i;
-            }      
-        }
-        return -1; //If cell doesn't exist
-    }
-};*/
-
 
 struct SubAreaInterval{
     int startX = 0;
@@ -878,8 +756,9 @@ public:
         return shortestPath.back();
     }
 
+
     //Finds the nearest cell in another subArea
-    Position GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState){
+    AStarPathInfo GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState){
         cout << "Get nearest cell in another SubArea" << endl;
         int shortestPathSize = 1000; //Temp value
         list<Position> shortestPath;
@@ -933,15 +812,25 @@ public:
         }          
         cout << " " << endl;
 
+        //Create struct to return
+        AStarPathInfo pathInfo;
+
         //If A* could not find any position, return (-1, -1)
         if(shortestPath.empty()){
             cout << "Nearest cell outside sub area not found using A*" << endl;
             Position emptyPos;
             emptyPos.x = -1;
             emptyPos.y = -1;
-            return emptyPos;
+            pathInfo.cellPos = emptyPos;
+            return pathInfo;
         }
-        return shortestPath.back();
+        //If the A* path exists
+        else{
+            pathInfo.cellPos = shortestPath.back();
+            pathInfo.path = shortestPath;
+            return pathInfo;
+        }
+
     }
 
     list<Position> AStarPathfinding(Position startPos, Position endPos, bool print){
