@@ -80,6 +80,10 @@ public:
         return gridSubAreas[i.x][i.y];
     }
 
+    double GetCellDistance(){
+        return cellDistance;
+    }
+
     //Super Area constructor. Creates SubAreas inside. numSubAreas can be 2², 3², 4² ...
     SuperArea(int size, int _numSubAreas, double _cellDistance){
 
@@ -293,6 +297,17 @@ public:
     void ChangeCellState(Position cellPos, State _state){
 
         Index cellIndex = GetCellIndex(cellPos);        
+
+        if(cellIndex.x != -1){ //Check if the cell exists
+            //cout << "Changing cell state(" << cellPos.x << " , " << cellPos.y << "), State: " << _state << endl;
+            grid[cellIndex.x][cellIndex.y] = _state;
+        }
+        else
+            cout << "Change Cell State failed, as the cell could not be found" << endl;
+        
+    }
+
+    void ChangeCellState(Index cellIndex, State _state){
 
         if(cellIndex.x != -1){ //Check if the cell exists
             //cout << "Changing cell state(" << cellPos.x << " , " << cellPos.y << "), State: " << _state << endl;
@@ -577,6 +592,14 @@ public:
 
     int GetCellId(Position cellPos){
         Index cellIndex = GetCellIndex(cellPos);
+        if(cellIndex.x != -1)
+            return gridIds[cellIndex.x][cellIndex.y];
+        else
+            return -1;
+    }
+
+
+    int GetCellId(Index cellIndex){
         if(cellIndex.x != -1)
             return gridIds[cellIndex.x][cellIndex.y];
         else

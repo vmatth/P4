@@ -106,22 +106,24 @@ namespace TurtlebotManager{
     }*/
 }
 
-struct AvoidingTimer{ //Struct used for the avoid algorithm.
+struct AvoidingInfo{ //Struct used for the avoid algorithm.
     Position cellPos; //The cell that will be marked as tempWall
     double revertTime; //The time when the cell will go back to Free (in seconds)
     int turtlebotId;
     int otherTurtlebotId;
     bool available = false;
+    Index upIndex, downIndex, leftIndex, rightIndex, upLeftIndex, upRightIndex, downLeftIndex, downRightIndex;
+    int upState, downState, leftState, rightState, upLeftState, upRightState, downLeftState, downRightState;
 };
 
 namespace MarkersManager{
     Markers markers;
     //(Super Area size / cellDistance) must be divideable by numSubAreas.
     //Super are size must be even
-    float cellSpace = 0.3f;
-   // SuperArea superArea(24, 16, cellSpace); //Prev: 24, 16, 0.3
-    SuperArea superArea(18, 4, cellSpace);
-    AvoidingTimer avoidingTimer[3];//Array of all tempWall cells that will be reverted to Free after x amount of seconds
+    float cellSpace = 1.0f/3.0f;
+    SuperArea superArea(16, 16, cellSpace); //Prev: 24, 16, 0.3
+    //SuperArea superArea(18, 4, cellSpace);
+    AvoidingInfo avoidingInfo[3];//Array of all tempWall cells that will be reverted to Free after x amount of seconds
     //list<TempWallTimer> tempWalls; //List of all tempWall cells that will be reverted to Free after x amount of seconds
 
     void DrawAllCells(){
@@ -153,7 +155,7 @@ namespace MarkersManager{
 
         ROS_INFO("Markers initialized");   
 
-        DrawAllCells();
+        //DrawAllCells();
     }
 
 
@@ -328,54 +330,259 @@ namespace MarkersManager{
             TurtlebotManager::turtlebots[turtlebotId]->SetAvoiding(true);
             TurtlebotManager::turtlebots[otherTurtlebotId]->SetAvoiding(true);
 
-            //Mark as tempWall(johnny boy)
+            //Mark as tempWall
             Position otherTurtlebotPos = TurtlebotManager::turtlebots[otherTurtlebotId]->GetPosition();
             Position cellPos = superArea.GetNearestCellPosition(otherTurtlebotPos, Unexplored, Free, true);
-            superArea.ChangeCellState(cellPos, TempWall);
+            
+            /*superArea.ChangeCellState(cellPos, TempWall);
             int cellId = superArea.GetCellId(cellPos);
             if(cellId != -1){ //If the cell has a valid Id
                 Index i = superArea.GetCellIndex(cellPos);
                 Index subAreaIndex = superArea.GetSubAreaIndex(i);
                 //Draw in Rviz
                 markers.CellMarkerUpdate(cellId, TempWall, cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
+            }*/
 
+            //AvoidingInfo
+            //Variables for when the avoid algorithm ends
+            AvoidingInfo a;
+            a.cellPos = cellPos;
+            a.available = true;
+            a.turtlebotId = turtlebotId;
+            a.otherTurtlebotId = otherTurtlebotId;
+
+
+            #pragma region uglycode
+            //UP
+            Index upIndex = superArea.GetCellIndex(cellPos);
+            upIndex.y = upIndex.y + 1;
+            a.upState = superArea.GetCellState(upIndex);
+            a.upIndex = upIndex;
+            superArea.ChangeCellState(upIndex, TempWall);
+            // int cellId = superArea.GetCellId(upIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(upIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            // usleep(100);
+            //DOWN
+            Index downIndex = superArea.GetCellIndex(cellPos);
+            downIndex.y = downIndex.y - 1;
+            a.downState = superArea.GetCellState(downIndex);
+            a.downIndex = downIndex;
+            superArea.ChangeCellState(downIndex, TempWall);
+            // cellId = superArea.GetCellId(downIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(downIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            //  usleep(100);
+            //RIGHT
+            Index rightIndex = superArea.GetCellIndex(cellPos);
+            rightIndex.x = rightIndex.x + 1;
+            a.rightState = superArea.GetCellState(rightIndex);
+            a.rightIndex = rightIndex;
+            superArea.ChangeCellState(rightIndex, TempWall);
+            // cellId = superArea.GetCellId(rightIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(rightIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(rightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            //  usleep(100);
+            //LEFT
+            Index leftIndex = superArea.GetCellIndex(cellPos);
+            leftIndex.x = leftIndex.x - 1;
+            a.leftState = superArea.GetCellState(leftIndex);
+            a.leftIndex = leftIndex;
+            superArea.ChangeCellState(leftIndex, TempWall);
+            // cellId = superArea.GetCellId(leftIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(leftIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(leftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            //  usleep(100);
+            //UP-RIGHT
+            Index upRightIndex = superArea.GetCellIndex(cellPos);
+            upRightIndex.y = upRightIndex.y + 1;
+            upRightIndex.x = upRightIndex.x + 1;
+            a.upRightState = superArea.GetCellState(upRightIndex);
+            a.upRightIndex = upRightIndex;
+            superArea.ChangeCellState(upRightIndex, TempWall);
+            // cellId = superArea.GetCellId(upRightIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(upRightIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            //  usleep(100);
+            //UP-LEFT
+            Index upLeftIndex = superArea.GetCellIndex(cellPos);
+            upLeftIndex.y = upLeftIndex.y + 1;
+            upLeftIndex.x = upLeftIndex.x - 1;
+            a.upLeftState = superArea.GetCellState(upLeftIndex);
+            a.upLeftIndex = upLeftIndex;
+            superArea.ChangeCellState(upLeftIndex, TempWall);
+            // cellId = superArea.GetCellId(upLeftIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(upLeftIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            //  usleep(100);
+            //DOWN-RIGHT   
+            Index downRightIndex = superArea.GetCellIndex(cellPos);
+            downRightIndex.x = downRightIndex.x + 1;
+            downRightIndex.y = downRightIndex.y - 1;
+            a.downRightState = superArea.GetCellState(downRightIndex);
+            a.downRightIndex = downRightIndex;
+            superArea.ChangeCellState(downRightIndex, TempWall);
+            // cellId = superArea.GetCellId(downRightIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(downRightIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }
+            //  usleep(100);
+            //DOWN-LEFT
+            Index downLeftIndex = superArea.GetCellIndex(cellPos);
+            downLeftIndex.x = downLeftIndex.x - 1;
+            downLeftIndex.y = downLeftIndex.y - 1;
+            a.downLeftState = superArea.GetCellState(downLeftIndex);
+            a.downLeftIndex = downLeftIndex;
+            superArea.ChangeCellState(downLeftIndex, TempWall);
+            // cellId = superArea.GetCellId(downLeftIndex);
+            // if(cellId != -1){ //If the cell has a valid Id
+            //     Index subAreaIndex = superArea.GetSubAreaIndex(downLeftIndex);
+            //     //Draw in Rviz
+            //     markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+            // }          
+
+
+            #pragma endregion
+            //Move avoidingInfo to the array       
+            avoidingInfo[turtlebotId] = a;
 
             //New A* Pathfinding
             StartAStarPathfinding(turtlebotId);
             TurtlebotManager::turtlebots[turtlebotId]->EmptyNewPoint();
-            //Start timer to end the avoid algorithm 
-            AvoidingTimer a;
-            a.cellPos = cellPos;
-            a.revertTime = Time::now().toSec() +10;
-            a.available = true;
-            a.turtlebotId = turtlebotId;
-            a.otherTurtlebotId = otherTurtlebotId;
-            cout << "Time now: " << Time::now().toSec() << endl;
-            avoidingTimer[turtlebotId] = a;
         }
-
         cout << "" << endl;
     }
 
     void StopAvoiding(){ //Stops avoiding after x amounts of seconds. 
         for(int i = 0; i < TurtlebotManager::numRobots; i++){
-            if(Time::now().toSec() >= avoidingTimer[i].revertTime && avoidingTimer[i].available){ //Checks if x amount of seconds have passed
-                avoidingTimer[i].available = false;
-                superArea.ChangeCellState(avoidingTimer[i].cellPos, Free); //Change the cell state to free
-                //Allow movement again
-                TurtlebotManager::turtlebots[avoidingTimer[i].turtlebotId]->SetAvoiding(false);
-                TurtlebotManager::turtlebots[avoidingTimer[i].otherTurtlebotId]->SetAvoiding(false);
-                //Resume movement for otherTurtlebot
-                TurtlebotManager::turtlebots[avoidingTimer[i].otherTurtlebotId]->ResumeMovement();
+            if(TurtlebotManager::turtlebots[i]->GetAvoiding() == true){ //If robot i is avoiding
+                //Check if avoiding array is available.
+                if(avoidingInfo[i].available){
+                    //Check the disstance between two robots (If they are over 1 m)
+                    if(superArea.ComparePositions(TurtlebotManager::turtlebots[i]->GetPosition(), 
+                                                  TurtlebotManager::turtlebots[avoidingInfo[i].otherTurtlebotId]->GetPosition(), 1) == false){
+                        
+                    
+                        avoidingInfo[i].available = false;
+                        
+                        //ugly code. sorry
+                        #pragma region badcode
+                        
+                        //superArea.ChangeCellState(avoidingInfo[i].cellPos, Free); //Change the cell state to free
+                        superArea.ChangeCellState(avoidingInfo[i].upIndex, (State)avoidingInfo[i].upState);
+                        superArea.ChangeCellState(avoidingInfo[i].downIndex, (State)avoidingInfo[i].downState);
+                        superArea.ChangeCellState(avoidingInfo[i].leftIndex, (State)avoidingInfo[i].leftState);
+                        superArea.ChangeCellState(avoidingInfo[i].rightIndex, (State)avoidingInfo[i].rightState);
+                        superArea.ChangeCellState(avoidingInfo[i].upRightIndex, (State)avoidingInfo[i].upRightState);
+                        superArea.ChangeCellState(avoidingInfo[i].upLeftIndex, (State)avoidingInfo[i].upLeftState);
+                        superArea.ChangeCellState(avoidingInfo[i].downRightIndex, (State)avoidingInfo[i].downRightState);
+                        superArea.ChangeCellState(avoidingInfo[i].downLeftIndex, (State)avoidingInfo[i].downLeftState);
 
-                //Get cell Id to draw in Rviz
-                int cellId = superArea.GetCellId(avoidingTimer[i].cellPos);
-                if(cellId != -1){ //If the cell has a valid Id
-                    Index index = superArea.GetCellIndex(avoidingTimer[i].cellPos);
-                    Index subAreaIndex = superArea.GetSubAreaIndex(index);
-                    //Draw in Rviz
-                    markers.CellMarkerUpdate(cellId, Free, avoidingTimer[i].cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
+
+                        // //Get cell Id to draw in Rviz
+                        // int cellId = superArea.GetCellId(avoidingInfo[i].cellPos);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index index = superArea.GetCellIndex(avoidingInfo[i].cellPos);
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(index);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, Free, avoidingInfo[i].cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+
+
+                        
+                        //UP
+                        // int cellId = superArea.GetCellId(avoidingInfo[i].upIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upState, superArea.GetCellPosition(avoidingInfo[i].upIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //DOWN
+                        // cellId = superArea.GetCellId(avoidingInfo[i].downIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downState, superArea.GetCellPosition(avoidingInfo[i].downIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //RIGHT
+                        // cellId = superArea.GetCellId(avoidingInfo[i].rightIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].rightIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].rightState, superArea.GetCellPosition(avoidingInfo[i].rightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //LEFT
+                        // cellId = superArea.GetCellId(avoidingInfo[i].leftIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].leftIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].leftState, superArea.GetCellPosition(avoidingInfo[i].leftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //UP-RIGHT
+                        // cellId = superArea.GetCellId(avoidingInfo[i].upRightIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upRightIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upRightState, superArea.GetCellPosition(avoidingInfo[i].upRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //UP-LEFT
+                        // cellId = superArea.GetCellId(avoidingInfo[i].upLeftIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upLeftIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upLeftState, superArea.GetCellPosition(avoidingInfo[i].upLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //DOWN-RIGHT
+                        // cellId = superArea.GetCellId(avoidingInfo[i].downRightIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downRightIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downRightState, superArea.GetCellPosition(avoidingInfo[i].downRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }
+                        //  usleep(100);
+                        // //DOWN-LEFT
+                        // cellId = superArea.GetCellId(avoidingInfo[i].downLeftIndex);
+                        // if(cellId != -1){ //If the cell has a valid Id
+                        //     Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downLeftIndex);
+                        //     //Draw in Rviz
+                        //     markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downLeftState, superArea.GetCellPosition(avoidingInfo[i].downLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                        // }                       
+                        #pragma endregion
+
+                                                
+                        //Allow movement again
+                        TurtlebotManager::turtlebots[avoidingInfo[i].turtlebotId]->SetAvoiding(false);
+                        TurtlebotManager::turtlebots[avoidingInfo[i].otherTurtlebotId]->SetAvoiding(false);
+                        //Resume movement for otherTurtlebot
+                        TurtlebotManager::turtlebots[avoidingInfo[i].otherTurtlebotId]->ResumeMovement();
+                    }
                 }
             }
         }
