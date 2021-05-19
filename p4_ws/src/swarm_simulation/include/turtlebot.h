@@ -18,6 +18,8 @@
 #include <string.h>
 #include <states.h>
 
+#include "visualization_msgs/Marker.h"
+
 using namespace std;
 using namespace ros;
 using namespace geometry_msgs;
@@ -32,6 +34,7 @@ struct Movement{
     double goalRotation;
     TurnType turnType;
     bool fixRelative; //Used to add + yaw to goalRotation, so it is relative. Must only be added once, so this bool tracks it.
+    int lineId; //rViz line id
 };
 
 class Turtlebot{
@@ -80,6 +83,10 @@ private:
 
     bool forcePathfind = false;
 
+    uint64_t LinePointId = 0;
+    uint64_t LineLineId = 0;
+    Publisher LineMarker_pub;
+
 public:
 
     //Callback function that is called each time odometry is updated
@@ -102,9 +109,6 @@ public:
 
     //Calculates a point where the nearest wall is located.
     void CalculateWall(double dist, double angle);
-
-    //Checks if a new point is in the robot's trajectory
-    void AngleCalc(Position point, double angle, double dist); 
 
     //Print new point
     Position GetPoint();
@@ -176,6 +180,12 @@ public:
     bool GetForcePathfind(){
         return forcePathfind;
     }
+
+    void Line(Position, Position);
+
+    void RemoveLine(int);
+
+    void SetupLineMarker();
 
 };
 
@@ -301,131 +311,23 @@ void Turtlebot::CalculateWall(double dist, double angle){
 
     if(dist != 100){ //The distance is set to 100 when the sensor doesnt hit an object
 
-    // cout << "Calculate Wall!" << endl;
         //Calculate wall pos relative to the robot.
-        //cout << "Point measured for ROBOT " << id << endl;
         double xRelative = cos(angle * PI / 180.0) * dist;
         double yRelative = sin(angle * PI / 180.0) * dist;
-        //cout << "xRelative: " << xRelative << ", yRelative: " << yRelative << endl;
+
         //Calculate global wall pos using the robots rotation.
-        //Calculate wall pos relative to the robot.
         double x = cos((angle + yaw) * PI / 180.0) * dist + pos.x;
         double y = sin((angle + yaw) * PI / 180.0) * dist + pos.y;
-    // cout << "xGlobal: " << x << ", yGlobal: " << y << endl;
-
 
         newPoint.x = x;
         newPoint.y = y;
 
-
-        //AngleCalc(newPoint, angle, dist);
     }
 }
 
-//Checks if the newPoint is in the robot's trajectory
-void Turtlebot::AngleCalc(Position point, double angle, double dist){
-    if(turningRobot)
-        return;
-    //Only check if a wall is in these angles
-    if((angle >= 0 && angle <= 90) || angle >= 270 && angle <= 360){
-        //FIx angle to go from 0-90 and not 270-360
-        if(angle >= 270)
-            angle = (360 - angle) * -1;
-
-        //cout << "Angle: " << angle << endl;
-        //The distance for the angle is calculated using the formula:
-        double calculatedDistance = 0.0000493827 * pow(abs(angle), 2) - 0.0077777 * abs(angle) + 0.5;
-
-    // cout << "Calculated distance for angle: " << calculatedDistance << endl;
-    // cout << "Actual distance: " << dist << endl;
-        
-        //Check if the distance is in the turtlebot's trajectory
-        if(dist <= calculatedDistance){
-            //cout << "You about to hit something" << endl;
-
-            EmptyList();
-
-            NewMovement(turn, -90 + angle, relative);
-
-            //Find a new point that is in front of the turtlebot so it moves along the wall
-            Position pointInFront;
-            pointInFront.x = pos.x + cos((-90 + angle + yaw) * PI/180.0);
-            pointInFront.y = pos.y + sin((-90 + angle + yaw) * PI/180.0);
-
-            NewMovement(traverse, pointInFront);
-            followWall = true;
-
-        }
-    }
-    //If the robot is following a wall
-    if(followWall){
-        if(angle >= 80 && angle <= 100){
-            cout << "Following wall with angle: " << angle << endl;
-            //Find a new point that is in front of the turtlebot so it moves along the wall
-            Position pointInFront;
-            pointInFront.x = pos.x + cos((-90 + angle + yaw) * PI/180.0);
-            pointInFront.y = pos.y + sin((-90 + angle + yaw) * PI/180.0);
-            //Only move along wall when no other movements are active
-            if(movements.empty())
-                NewMovement(traverse, pointInFront);
-        }
-        else if(angle >= 110 && angle <= 130){
-            followWall = false;
-            cout << "Wall is too far away" << endl;
-            EmptyList();
-
-            NewMovement(turn, 90, relative);
-
-            //Find a new point that is in front of the turtlebot so it moves along the wall
-            Position pointInFront;
-            pointInFront.x = pos.x + cos((-90 + angle + yaw) * PI/180.0);
-            pointInFront.y = pos.y + sin((-90 + angle + yaw) * PI/180.0);
-            NewMovement(traverse, pointInFront);
-
-            /*Position goalPos;
-            goalPos.x = 13;
-            goalPos.y = 5;
-            NewMovement(traverse, goalPos);*/
-        }
-    }
-    /*
-    if(angle <= 95 && angle >= 85) //If the angle is close to 90 deg, then the point is near left to the robot
-    { 
-        cout << "Angle: " << angle << endl;
-        if(dist <= 0.5) //Only check when the wall is close
-        {  
-            cout << "Wall to the left of the turtlebot!" << endl;
-            //Find a new point that is in front of the turtlebot so it moves along the wall
-            Position pointInFront;
-            pointInFront.x = pos.x + cos(yaw * PI/180.0);
-            pointInFront.y = pos.y + sin(yaw * PI/180.0);
-
-            //Update goalPos to the point in front of the turtlebot
-            goalPos.x = pointInFront.x;
-            goalPos.y = pointInFront.y;
-        }
-    }
-    if(angle > 130 || angle < 85){  
-        cout << "CURRENT YAW: " << yaw << endl; 
-        goalYaw = 90 + yaw;
-        cout << "Goal Yaw: " << goalYaw;
-        cout << "sdfgfgftghgrshhhhfdhgfghfhghfhghfhhfhghfghfghfhf" << endl;
-        movementState = turning;
-        nextState = direct;
-        goalPos.x = 6;
-        goalPos.y = 0; //lmao
-    }*/
-
-}
 
 
 void Turtlebot::odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
-    //ROS_INFO("Seq: [%d]", msg->header.seq);
-    // ROS_INFO("Odometry for turtlebot %d", id);
-    //ROS_INFO("Position-> x: [%f], y: [%f], z: [%f]", msg->pose.pose.position.x,msg->pose.pose.position.y, msg->pose.pose.position.z);
-    //ROS_INFO("Orientation-> x: [%f], y: [%f], z: [%f], w: [%f]", msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
-    //ROS_INFO("Vel-> Linear: [%f], Angular: [%f]", msg->twist.twist.linear.x,msg->twist.twist.angular.z);
-    
     //Update the robot position
     UpdatePos(msg->pose.pose.position.x, msg->pose.pose.position.y);
 
@@ -434,14 +336,6 @@ void Turtlebot::odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 }
 
 void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg){   //Callback function that is called each time range is updated
-    
-    //msg->data[0] is different if the world has changed.
-    //This function automaically finds out which sensor id matches with which each turtlebot.
-    //ROS_INFO("Seq: [%d]", msg->header.seq);
-
-    /*if(firstRobotId == 0)  
-        firstRobotId = msg->data[0];*/
-
     //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
@@ -470,14 +364,6 @@ string Turtlebot::Topic(string topic){
     return sstm.str();
 }
 
-void Turtlebot::Publish(){
-
-
-    //cout << "Publishing!!!!!" << endl;
-
-    //cmd_vel_pub.publish(cmd_vel_message);
-}
-
 
 //Constructor
 Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by storing variables and publishing/subscribing to relevant robot topics.
@@ -499,6 +385,7 @@ Turtlebot::Turtlebot(int _id, Position _startPos){ //Sets up the turtlebot by st
     cmd_vel_pub = n.advertise<Twist>(Topic("/mobile_base/commands/velocity"), 1); //Publishes 
     odom_sub = n.subscribe(Topic("/odom"), 1000, &Turtlebot::odomCallback, this); //Subscribes to turtlebot odometry
     range_sub = n.subscribe("/sensor/range", 1000, &Turtlebot::rangeCallback, this); //Subscribes to sensor range
+    SetupLineMarker();
 }
 
 //Creates a new Movement struct with given variables. The movement is pushed into the "movements" list
@@ -508,32 +395,44 @@ void Turtlebot::NewMovement(MovementType _movementType, Position _goalPos){
     m.movementType = _movementType;
     m.goalPos = _goalPos;
 
+    //Draw Line to visualize the new movement path
+    if(movements.empty()){
+        Line(GetPosition(), m.goalPos);
+    }
+    else{
+        Line(movements.back().goalPos, m.goalPos);
+    }
+    m.lineId = LinePointId + (id * 1000);
+
     movements.push_back(m);
+
 }
 
 //Creates a new Movement with type "turn". Relative 90 will move the turtlebot 90 deg relative to the robot (turns left). While false, turtlebot will move to 90 deg globally
 void Turtlebot::NewMovement(MovementType _movementType, double _goalRotation, TurnType _turnType){
-    cout << "New Movement Command has been given to [" << id << "]" << " (" << _goalRotation;
+    //cout << "New Movement Command has been given to [" << id << "]" << " (" << _goalRotation;
     Movement m;
     m.movementType = _movementType;
     m.goalRotation = _goalRotation;
     m.turnType = _turnType;
 
-    if(_turnType == relative){
-        cout << ", relative)" << endl;
-    }
-    else
-        cout << ", absolute)" << endl;
+    // if(_turnType == relative){
+    //     //cout << ", relative)" << endl;
+    // }
+    // else
+    //     //cout << ", absolute)" << endl;
 
     movements.push_back(m);
+
+    //Draw MLine
 }
 
 void Turtlebot::GoalReached(Position _goal){
     //cout << "The goal has been reached by turtlebot [" << id << "]" << endl;
     freeCell = _goal;
     movementState = idle;
-    PrintPosition(_goal, "Goal Reached: ");
     prevPos = _goal;
+    //Stop force pathfinding 
 }
 
 void Turtlebot::GoalYawReached(){
@@ -590,7 +489,7 @@ void Turtlebot::Move(){
             //cout << "Gamma: " << gamma << endl;
 
             if(gamma < 1 && gamma > -1){
-                cout << "Goal has been reached!" << endl;
+                //cout << "Goal has been reached!" << endl;
                 movements.pop_front();
                 turningRobot = false;
             }
@@ -618,37 +517,8 @@ void Turtlebot::Move(){
             if(alpha < 0)
                 alpha = 360 + alpha;
 
-            //cout << "Alpha (Absolute angles to goalPos): " << alpha << endl;
-
-            //Alpha is always the shortest angle to the goal. E.g: 270 deg = -90
-            //This is a problem when the goal is 180 deg, as it switches from 180 deg to -180 deg
-
-           //If the alpha is negative (E.g -185), find the positive alpha (E.g 175) and check which is closets to the robot's current yaw
-            /*if(alpha < 0){
-                //cout << "----------------" << endl;
-                //cout << "Negative alpha: " << alpha << endl;
-                double positiveAlpha = alpha + 360;
-                //cout << "Positive alpha: " << positiveAlpha << endl;
-                //cout << "Current Yaw:" << yaw << endl;
-            
-                    double positiveDifference = abs(positiveAlpha - yaw);
-                    double negativeDifference = abs(alpha - yaw);
-                    //cout << "Positive Dif:" << positiveDifference << endl;
-                    //cout << "Negative Dif:" << negativeDifference << endl;
-                    if(positiveDifference < negativeDifference){
-                        alpha = positiveAlpha; //Swap negative alpha with positive
-                    }
-
-            }*/
-
-    
-
             gamma = alpha - yaw;
-            //cout << "Robot Yaw: " << yaw << endl; //Robottens vinkel
 
-            //cout << "gamma: " << gamma << endl; //forskel i vinklerne
-
-            //Always find the shortest angle (gamma) to the destination (alpha)
 
             if(alpha >= yaw){
                 //cout << "Alpha > yaw" << endl;
@@ -665,18 +535,6 @@ void Turtlebot::Move(){
                     gamma = newGamma;
             }
 
-            //cout << "Final gamma: " << gamma << endl; //forskel i vinklerne
-            // cout << "---------------" << endl;
-
-            //cout << "MoveToGoal Pos: ("  << goalPos.x << ", " << goalPos.y << ")" << endl;
-
-            // cout << "RobotPos: ("  << pos.x << ", " << pos.y << ")" << endl;
-
-            // cout << "Alpha (Angle to point): " << alpha << endl; //Vinklen fra (0,0) til punktet
-
-
-            // cout << "Gamma (Rads): " << (gamma/180 * PI) << endl; //forskel i vinklerne
-
             cmd_vel_message.angular.z = gamma/180 * PI * rotationSpeed;
 
             //If the robots angle is in the margin (Rotated correctly)
@@ -691,8 +549,9 @@ void Turtlebot::Move(){
                 //If the robot has reached the goalPos
                 else{
                     cmd_vel_message.linear.x = 0;
-                    cout << "Goal has been reached!" << endl;
+                    //cout << "Goal has been reached!" << endl;
                     GoalReached(movements.front().goalPos);
+                    RemoveLine(movements.front().lineId);
                     movements.pop_front();
                 }
             }
@@ -703,14 +562,15 @@ void Turtlebot::Move(){
 
             //Publish linear and rotation 
             cmd_vel_pub.publish(cmd_vel_message);            
-            }
-            //cout << "Moving with movement type: "
+        }
     }
 }
 
 void Turtlebot::EmptyList(){
+    for(auto const& m : movements){
+        RemoveLine(m.lineId);
+    }
     movements.clear();
-    cout << "List emptied!" << endl;
     turningRobot = false;
 }
 
@@ -723,4 +583,118 @@ void Turtlebot::EmptyfreeCell(){
 void Turtlebot::EmptyNewPoint(){
     newPoint.x = 0;
     newPoint.y = 0;
+}
+
+
+//Creates the topic visualization_marker/robotMarker
+void Turtlebot::SetupLineMarker(){
+    NodeHandle node_handle_Mline;
+
+    LineMarker_pub = node_handle_Mline.advertise<visualization_msgs::Marker>("/visualization_marker/mline", 1);
+}
+
+void Turtlebot::Line(Position startPos, Position goalPos){
+
+    LinePointId++;
+    LineLineId++;
+
+    visualization_msgs::Marker mLineMarkerPoints, mLineMarkerLine;
+    mLineMarkerPoints.header.frame_id = "map";
+    mLineMarkerPoints.header.stamp = ros::Time();
+    mLineMarkerPoints.ns = "point";
+    mLineMarkerPoints.id = LinePointId + (id * 1000);
+    mLineMarkerPoints.type = visualization_msgs::Marker::POINTS;
+    mLineMarkerPoints.action = visualization_msgs::Marker::ADD;
+    mLineMarkerPoints.pose.position.x = 0;
+    mLineMarkerPoints.pose.position.y = 0;
+    mLineMarkerPoints.pose.position.z = 0;
+    mLineMarkerPoints.pose.orientation.x = 0.0;
+    mLineMarkerPoints.pose.orientation.y = 0.0;
+    mLineMarkerPoints.pose.orientation.z = 0.0;
+    mLineMarkerPoints.pose.orientation.w = 1.0;
+    mLineMarkerPoints.scale.x = 0.15;
+    mLineMarkerPoints.scale.y = 0.15;
+    mLineMarkerPoints.scale.z = 0.15;
+    mLineMarkerPoints.color.a = 0; // Don't forget to set the alpha!
+
+    mLineMarkerPoints.lifetime = ros::Duration();
+
+    /************** LINE MARKER SETUP*****************/
+    mLineMarkerLine.header.frame_id = "map";
+    mLineMarkerLine.header.stamp = ros::Time();
+    mLineMarkerLine.ns = "line";
+    mLineMarkerLine.id = LinePointId + (id * 1000);
+    mLineMarkerLine.type = visualization_msgs::Marker::LINE_STRIP;
+    mLineMarkerLine.action = visualization_msgs::Marker::ADD;
+    mLineMarkerLine.pose.position.x = 0;
+    mLineMarkerLine.pose.position.y = 0;
+    mLineMarkerLine.pose.position.z = 0;
+//    mLineMarkerLine.pose.orientation.x = 0.0;
+//    mLineMarkerLine.pose.orientation.y = 0.0;
+//    mLineMarkerLine.pose.orientation.z = 0.0;
+    mLineMarkerLine.pose.orientation.w = 1.0;
+    mLineMarkerLine.scale.x = 0.1;
+//    mLineMarkerLine.scale.y = 1.0;
+//    mLineMarkerLine.scale.z = 1.0;
+    mLineMarkerLine.color.a = 0.8; // Don't forget to set the alpha!
+
+    //If statement her
+    if (id == 0)
+    {
+        mLineMarkerLine.color.r = 1.0;
+        mLineMarkerLine.color.g = 0.0;
+        mLineMarkerLine.color.b = 0.0;
+
+    } else if (id == 1)
+    {
+        mLineMarkerLine.color.r = 0.0;
+        mLineMarkerLine.color.g = 1.0;
+        mLineMarkerLine.color.b = 0.0;
+        
+    } else if (id == 2)
+    {
+        mLineMarkerLine.color.r = 0.0;
+        mLineMarkerLine.color.g = 0.0;
+        mLineMarkerLine.color.b = 1.0;
+    }
+
+    mLineMarkerLine.lifetime = ros::Duration();
+
+    for (uint32_t i = 0; i < 2; ++i)
+    { 
+        geometry_msgs::Point pStart, pGoal;
+        pStart.x = startPos.x;
+        pStart.y = startPos.y;
+        pStart.z = 0.1;
+
+        pGoal.x = goalPos.x;
+        pGoal.y = goalPos.y;
+        pGoal.z = 0.1;
+  
+        mLineMarkerPoints.points.push_back(pStart);
+        mLineMarkerPoints.points.push_back(pGoal);
+  
+        mLineMarkerLine.points.push_back(pStart);
+        mLineMarkerLine.points.push_back(pGoal);
+    }
+    usleep(100);
+    LineMarker_pub.publish(mLineMarkerLine);
+
+}
+
+
+void Turtlebot::RemoveLine(int lineId){
+    visualization_msgs::Marker mLineMarkerLine;
+
+    mLineMarkerLine.header.frame_id = "map";
+    mLineMarkerLine.header.stamp = ros::Time();
+    mLineMarkerLine.ns = "line";
+    mLineMarkerLine.id = lineId;
+    mLineMarkerLine.type = visualization_msgs::Marker::LINE_STRIP;
+    mLineMarkerLine.action = visualization_msgs::Marker::DELETE;
+    mLineMarkerLine.pose.position.x = 0;
+    mLineMarkerLine.pose.position.y = 0;
+    mLineMarkerLine.pose.position.z = 0;
+    usleep(100);
+    LineMarker_pub.publish(mLineMarkerLine);
 }
