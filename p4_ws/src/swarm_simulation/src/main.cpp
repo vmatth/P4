@@ -203,17 +203,21 @@ namespace MarkersManager{
             else{ //No valid points could be found in any other subarea. The robot will then return to start position
                 //Only traverse to start pos once.
                 if(TurtlebotManager::turtlebots[turtlebotId]->GetPathfindingStartPos() == false){
-                    TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingStartPos(true); //Set this variable to true, so it only happens once!
+                    TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingStartPos(true); //Set this variable to true, so it only happens once!                                                              
                     cout << "[" << turtlebotId << "] Cannot find new subareas to explore. Will return to start position" << endl;
                     goalPos = TurtlebotManager::turtlebots[turtlebotId]->GetStartPos();
                     list<Position> path = superArea.AStarPathfindingToStart(turtlebotPos, goalPos, true);
+
                     //Set pathfinding variables
                     TurtlebotManager::turtlebots[turtlebotId]->SetPathfinding(true);
-                    TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingPoint(goalPos);
+                    TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingPoint(pathInfo.cellPos);
+                    TurtlebotManager::turtlebots[turtlebotId]->SetForcePathfind(true);
                     //Give the turtlebot movements
-                    for (auto const& p : path) {
+                    for (auto const& p : pathInfo.path) {
                         TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, p); 
                     }
+                    TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingPoint(goalPos);
+
                 }
             }
         }
