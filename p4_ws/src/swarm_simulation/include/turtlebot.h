@@ -83,6 +83,8 @@ private:
 
     bool forcePathfind = false;
 
+    bool pathfindingToStart = false;
+
     uint64_t LinePointId = 0;
     uint64_t LineLineId = 0;
     Publisher LineMarker_pub;
@@ -187,6 +189,10 @@ public:
 
     void SetupLineMarker();
 
+    void SetPathfindingStartPos(bool);
+
+    bool GetPathfindingStartPos();
+
 };
 
 
@@ -286,6 +292,14 @@ void Turtlebot::ResumeMovement(){
 void Turtlebot::UpdatePos(double xOdom, double yOdom){
     pos.x = startPos.x + xOdom;
     pos.y = startPos.y + yOdom;
+}
+
+void Turtlebot::SetPathfindingStartPos(bool _value){
+    pathfindingToStart = _value;
+}
+
+bool Turtlebot::GetPathfindingStartPos(){
+    return pathfindingToStart;
 }
 
 //Updates robot rotation using odometry values.
