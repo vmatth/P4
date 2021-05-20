@@ -22,9 +22,9 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0; pos0.x = 1; pos0.y = 1;
-        Position pos1; pos1.x = 1; pos1.y = 3;
-        Position pos2; pos2.x = 3; pos2.y = 1;
+        Position pos0; pos0.x = 0.75; pos0.y = 0.75;
+        Position pos1; pos1.x = -2; pos1.y = -2;
+        Position pos2; pos2.x = -4; pos2.y = -4;
 
         robotStartPositions.push_back(pos0);
         robotStartPositions.push_back(pos1);
@@ -63,13 +63,15 @@ namespace MarkersManager{
     //Super are size must be even
     //float cellSpace = 1.0f/3.0f;
     float cellSpace = 0.5;
-    SuperArea superArea(16, 16, cellSpace);
+    SuperArea superArea(12, 4, cellSpace);
 
-    //float cellSpace = 0.4f;
-   // SuperArea superArea(16, 4, cellSpace);
+    //float cellSpace = 0.5;
+    //SuperArea superArea(6, 1, cellSpace);
 
-    //SuperArea superArea(18, 4, cellSpace);
-    AvoidingInfo avoidingInfo[3];//Array of all tempWall cells that will be reverted to Free after x amount of seconds
+
+
+
+    AvoidingInfo avoidingInfo[3];//Array of all tempWall cells that will be reverted
 
     void DrawAllCells(){
         usleep(400000);
@@ -79,7 +81,6 @@ namespace MarkersManager{
         for(int r = 0; r < superArea.GetNumSubAreasSqrt(); r++){
             for(int c = 0; c < superArea.GetNumSubAreasSqrt(); c++){
                 SubAreaInterval a = superArea.GetSubAreaInterval(r, c);
-                cout << "Drawing line for " << r << "," << c << endl;
                 //Vertical lines
                 Position startLinePos; startLinePos.x = a.startX; startLinePos.y = a.startY;
                 Position endLinePos; endLinePos.x = a.startX; endLinePos.y = a.endY;
@@ -213,10 +214,11 @@ namespace MarkersManager{
                     TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingPoint(pathInfo.cellPos);
                     TurtlebotManager::turtlebots[turtlebotId]->SetForcePathfind(true);
                     //Give the turtlebot movements
-                    for (auto const& p : pathInfo.path) {
+                    for (auto const& p : path) {
                         TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, p); 
                     }
                     TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingPoint(goalPos);
+                    cout << "-------------" << endl;
 
                 }
             }
@@ -655,9 +657,11 @@ namespace MarkersManager{
                         }
                     }
                     //If the robot is pathfinding with A*, then check if the goal Pos hasn't been changed by another turtlebot to "Wall" or "Free"
-                    else if(TurtlebotManager::turtlebots[i]->GetPathfinding() == true){
+                    //Do not do this if pahtfinding back to startPos, as startPos will always be free.
+                    else if(TurtlebotManager::turtlebots[i]->GetPathfinding() == true && TurtlebotManager::turtlebots[i]->GetPathfindingStartPos() == false){
                         //Check the A* final path point, to see if it has been changed
                         if(TurtlebotManager::turtlebots[i]->GetMovementsSize() > 0){
+                            cout << i << ": The robot's goal position has been updated by another robot." << endl;
                             Position goalPos = TurtlebotManager::turtlebots[i]->GetMovements().back();
                             int cellState = superArea.GetCellState(goalPos);
                             if(cellState == Wall || cellState == Free){
@@ -725,6 +729,24 @@ namespace MarkersManager{
             cout << "[2] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
         }
     }
+
+    void TestSpreadOut(){
+        //Start PSO
+        Position goalPos;
+        goalPos.x = 1;
+        goalPos.y = 1;
+        goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
+
+        TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
+
+        // goalPos;
+        // goalPos.x = 3.75;
+        // goalPos.y = 4;
+        // goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
+
+        // TurtlebotManager::turtlebots[1]->NewMovement(traverse, goalPos);
+
+    }
 }
 
 
@@ -742,7 +764,9 @@ int main(int argc, char *argv[])
     //Main loop
     Rate loop_rate(10);
 
-    MarkersManager::SpreadOut();
+   // MarkersManager::SpreadOut();
+
+   MarkersManager::TestSpreadOut();
 
     while (ok())
     {
@@ -753,7 +777,8 @@ int main(int argc, char *argv[])
         MarkersManager::GetPoints(); //Gets a new point from each turtlebot. Uses this point for path planning if its a wall
         MarkersManager::GetTurtlebotPositions();
         MarkersManager::StopAvoiding(); //Reverts all "TempWall" cells back to "Free" after x amount of seconds
-        
+    
+
         ros::spinOnce(); //Spin for callback functions 
         loop_rate.sleep();
     }

@@ -60,7 +60,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker/cell
       Name: Marker
       Namespaces:
-        cell: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -76,7 +76,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker/robot
       Name: Marker
       Namespaces:
-        robot: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -89,7 +89,7 @@ Visualization Manager:
       Value: false
   Enabled: true
   Global Options:
-    Background Color: 25; 25; 25
+    Background Color: 255; 255; 255
     Default Light: true
     Fixed Frame: map
     Frame Rate: 30
@@ -112,16 +112,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 24.1583996
+      Distance: 11
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 7.01305962
-        Y: 8.15043068
-        Z: -0.915070295
+        X: 3
+        Y: 3
+        Z: -0.915069997
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
