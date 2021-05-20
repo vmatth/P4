@@ -350,7 +350,7 @@ void Turtlebot::odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 }
 
 void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg){   //Callback function that is called each time range is updated
-    ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+    //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
     if(id == 0 && msg->data[0] == 77){ //box world: 128. office = 107. newoffice 102. testBox 38. TOffice = 77
@@ -608,8 +608,6 @@ void Turtlebot::SetupLineMarker(){
 }
 
 void Turtlebot::Line(Position startPos, Position goalPos){
-    if(id == 1)
-        return;
 
     LinePointId++;
     LineLineId++;

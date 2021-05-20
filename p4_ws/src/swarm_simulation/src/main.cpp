@@ -22,8 +22,8 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0; pos0.x = 0.75; pos0.y = 0.75;
-        Position pos1; pos1.x = -2; pos1.y = -2;
+        Position pos0; pos0.x = 3.75; pos0.y = 4.25;
+        Position pos1; pos1.x = 1.5; pos1.y = 5.75;
         Position pos2; pos2.x = -4; pos2.y = -4;
 
         robotStartPositions.push_back(pos0);
@@ -733,18 +733,18 @@ namespace MarkersManager{
     void TestSpreadOut(){
         //Start PSO
         Position goalPos;
-        goalPos.x = 1;
-        goalPos.y = 1;
+        goalPos.x = 3.75;
+        goalPos.y = 4.75;
         goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
 
         TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
 
-        // goalPos;
-        // goalPos.x = 3.75;
-        // goalPos.y = 4;
-        // goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
+        goalPos;
+        goalPos.x = 1.75;
+        goalPos.y = 5.75;
+        goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
 
-        // TurtlebotManager::turtlebots[1]->NewMovement(traverse, goalPos);
+        TurtlebotManager::turtlebots[1]->NewMovement(traverse, goalPos);
 
     }
 }
