@@ -76,7 +76,8 @@ private:
     bool pathfinding = false; //If the robot is using A*. If yes, it will not ignore the "front right left" check everytime it reaches a new cell.
     //If false it will find the next cell after it reaches another cell.
 
-    bool avoiding = false; //If the robot is avoiding collision with another robot!
+    bool avoidingMaster = false; //If the robot is avoiding collision with another robot!
+    bool avoidingSlave = false; //Slave: The robot stands still with temp walls around it
 
     double speed = 0.3;
     double rotationSpeed = 1;
@@ -167,9 +168,13 @@ public:
 
     Position GetPathfindingPoint();
 
-    void SetAvoiding(bool);
+    void SetAvoidingMaster(bool);
 
-    bool GetAvoiding();
+    bool GetAvoidingMaster();
+
+    void SetAvoidingSlave(bool);
+
+    bool GetAvoidingSlave();    
 
     void PauseMovement(); //Stops the movement by setting speed to 0.
 
@@ -266,12 +271,20 @@ int Turtlebot::GetMovementsSize(){
     return movements.size();
 }
 
-void Turtlebot::SetAvoiding(bool _avoid){
-    avoiding = _avoid;
+void Turtlebot::SetAvoidingMaster(bool _avoid){
+    avoidingMaster = _avoid;
 }
 
-bool Turtlebot::GetAvoiding(){
-    return avoiding;
+bool Turtlebot::GetAvoidingMaster(){
+    return avoidingMaster;
+}
+
+void Turtlebot::SetAvoidingSlave(bool _avoid){
+    avoidingSlave = _avoid;
+}
+
+bool Turtlebot::GetAvoidingSlave(){
+    return avoidingSlave;
 }
 
 void Turtlebot::PrintPosition(Position pos, string text){
@@ -353,17 +366,17 @@ void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg)
     //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
-    if(id == 0 && msg->data[0] == 77){ //box world: 128. office = 107. newoffice 102. testBox 38. TOffice = 77
+    if(id == 0 && msg->data[0] == 56){ //box world: 128. office = 107. newoffice 102. testBox 38. TOffice = 77. smallBox = 56
         //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         range = msg->data[1];
         angle = msg->data[2];
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 1 && msg->data[0] == 1772){ //box world 1772. office = 1751. newoffice 1746
+    else if(id == 1 && msg->data[0] == 1700){ //box world 1772. office = 1751. newoffice 1746. smallBox = 1700
         //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }
-    else if(id == 2 && msg->data[0] == 3416){ //box world 3416. office = 3395. newoffice 3390
+    else if(id == 2 && msg->data[0] == 3344){ //box world 3416. office = 3395. newoffice 3390. smallBox = 3344
         //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
         CalculateWall(msg->data[1], msg->data[2]);
     }     

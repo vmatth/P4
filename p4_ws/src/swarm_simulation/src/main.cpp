@@ -22,9 +22,9 @@ namespace TurtlebotManager{
     void InitializeTurtlebots(){ //Initializes a specified amount of turtlebots for the swarm
 
         //Specify the robot start position
-        Position pos0; pos0.x = 3.75; pos0.y = 4.25;
-        Position pos1; pos1.x = 1.5; pos1.y = 5.75;
-        Position pos2; pos2.x = -4; pos2.y = -4;
+        Position pos0; pos0.x = 1.75; pos0.y = 1.75;
+        Position pos1; pos1.x = 3; pos1.y = 1.75;
+        Position pos2; pos2.x = 1.75; pos2.y = 3;
 
         robotStartPositions.push_back(pos0);
         robotStartPositions.push_back(pos1);
@@ -45,14 +45,23 @@ namespace TurtlebotManager{
             turtlebots[i]->Move();
         }
     }
+
+    //Gets the positions of other robots except this one
+    list<Position> GetOtherTurtlebotsPosition(int turtlebotId){
+        list<Position> otherPos;
+        for(int i = 0; i < numRobots; i++){
+            if (i != turtlebotId){
+                otherPos.push_back(turtlebots[i]->GetPosition());
+            }
+        }
+        return otherPos;
+    }
 }
 
 struct AvoidingInfo{ //Struct used for the avoid algorithm.
     Position cellPos; //The cell that will be marked as tempWall
-    double revertTime; //The time when the cell will go back to Free (in seconds)
-    int turtlebotId;
-    int otherTurtlebotId;
-    bool available = false;
+    int masterId; //The other robot that is the master (Lower Id robot)
+    bool avoiding = false; //If avoiding or not.
     Index upIndex, downIndex, leftIndex, rightIndex, upLeftIndex, upRightIndex, downLeftIndex, downRightIndex;
     int upState, downState, leftState, rightState, upLeftState, upRightState, downLeftState, downRightState;
 };
@@ -62,8 +71,9 @@ namespace MarkersManager{
     //(Super Area size / cellDistance) must be divideable by numSubAreas.
     //Super are size must be even
     //float cellSpace = 1.0f/3.0f;
+
     float cellSpace = 0.5;
-    SuperArea superArea(12, 4, cellSpace);
+    SuperArea superArea(10, 4, cellSpace);
 
     //float cellSpace = 0.5;
     //SuperArea superArea(6, 1, cellSpace);
@@ -124,6 +134,9 @@ namespace MarkersManager{
 
     }
 
+    int stuckTimer[3]; //Counted using 10 hz loop. So if stuckTimer[0] = 10 means turtlebot 0 has been stuck for 1 second.
+    //Used in FreeRobots() function
+        
     void InitializeMarkers(){
 
         //Setups each different topic
@@ -135,6 +148,10 @@ namespace MarkersManager{
         ROS_INFO("Markers initialized");   
 
         DrawAllCells();
+
+        stuckTimer[0] = 0; 
+        stuckTimer[1] = 0; 
+        stuckTimer[2] = 0; 
     }
 
 
@@ -167,12 +184,14 @@ namespace MarkersManager{
     }
 
     //Finds a new path using A* and moves the robot to it.
-    void StartAStarPathfinding(int turtlebotId){
+    bool StartAStarPathfinding(int turtlebotId){
         //Stop the current movement
         TurtlebotManager::turtlebots[turtlebotId]->EmptyList();
         //Find a new point using A*
         Position turtlebotPos = TurtlebotManager::turtlebots[turtlebotId]->GetPosition();
         Position goalPos = superArea.GetNearestCellAStar(turtlebotPos, Unexplored);
+
+        bool pathFound = false; //Return value
         
         if(goalPos.x != -1){ //If goalPos was found using A*
             list<Position> path = superArea.AStarPathfinding(turtlebotPos, goalPos, false); //Set to true to show path in terminal
@@ -183,11 +202,12 @@ namespace MarkersManager{
             for (auto const& p : path) {
                 TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, p); 
             }
+            pathFound = true;
         }
         else{ //If no path can be found in the turtlebots subarea, find next subarea
             cout << "No movements for turtlebot " << turtlebotId << " in this subarea. New subarea will be found " << endl;
             AStarPathInfo pathInfo;
-            pathInfo = superArea.GetNearestCellAStarAnotherSubArea(turtlebotPos, Unexplored);
+            pathInfo = superArea.GetNearestCellAStarAnotherSubArea(turtlebotPos, Unexplored, TurtlebotManager::GetOtherTurtlebotsPosition(turtlebotId), true);
 
             if(pathInfo.cellPos.x != -1) { //Check if A* could find a cell in another subarea
                 //Set pathfinding variables
@@ -200,6 +220,7 @@ namespace MarkersManager{
                 Index newSubArea = superArea.GetSubArea(pathInfo.cellPos);
                 cout << "New Sub Area: ";
                 cout << "(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+                pathFound = true;
             }
             else{ //No valid points could be found in any other subarea. The robot will then return to start position
                 //Only traverse to start pos once.
@@ -219,10 +240,12 @@ namespace MarkersManager{
                     }
                     TurtlebotManager::turtlebots[turtlebotId]->SetPathfindingPoint(goalPos);
                     cout << "-------------" << endl;
-
+                    pathFound = true;
                 }
             }
         }
+
+        return pathFound;
     }
 
     //When the robot finds a new wall, checks if the wall is the next goal when using PSO. If true, use A*
@@ -233,7 +256,7 @@ namespace MarkersManager{
             //Check if the robot will collide with its goal pos
             bool collision = superArea.CheckForCollision(wallPos, TurtlebotManager::turtlebots[turtlebotId]->GetGoalPos());
             if(collision){ //if collide
-                cout << "Robot [" << turtlebotId << "]'s goal position will collide with a wall. Use A*" << endl; 
+                //cout << "Robot [" << turtlebotId << "]'s goal position will collide with a wall. Use A*" << endl; 
                 StartAStarPathfinding(turtlebotId);
             }
         }          
@@ -256,12 +279,12 @@ namespace MarkersManager{
             }            
             //If the wall is a part of the PATH, update the robot's path.
             if(inPath){
-                cout << "Wall is a part of A* PATH, new path made" << endl;
+                //cout << "Wall is a part of A* PATH, new path made" << endl;
 
                 if(TurtlebotManager::turtlebots[turtlebotId]->GetForcePathfind() == false) //If not forcing the goalPos, find the nearest cell and pathfind to it
                     StartAStarPathfinding(turtlebotId);
                 else{ //If forcing the turtlebot to move to a specific point (E.g at the start when spreading out)
-                    cout << "Forcing pathfind !!!" << endl;
+                    //cout << "Forcing pathfind !!!" << endl;
                     TurtlebotManager::turtlebots[turtlebotId]->EmptyList();
                     //Find a new point using A*
                     Position turtlebotPos = TurtlebotManager::turtlebots[turtlebotId]->GetPosition();
@@ -296,282 +319,324 @@ namespace MarkersManager{
         UpdateAStarPathfinding(cellInfo.pos, turtlebotId); //Update path if using A*
         TurtlebotManager::turtlebots[turtlebotId]->EmptyNewPoint();
     }
+   
+    void StopAvoiding(int i){    
+        avoidingInfo[i].avoiding = false;
+        
+        //ugly code. sorry
+        #pragma region badcode
+        
+        //superArea.ChangeCellState(avoidingInfo[i].cellPos, Free); //Change the cell state to free
+        superArea.ChangeCellState(avoidingInfo[i].upIndex, (State)avoidingInfo[i].upState);
+        superArea.ChangeCellState(avoidingInfo[i].downIndex, (State)avoidingInfo[i].downState);
+        superArea.ChangeCellState(avoidingInfo[i].leftIndex, (State)avoidingInfo[i].leftState);
+        superArea.ChangeCellState(avoidingInfo[i].rightIndex, (State)avoidingInfo[i].rightState);
+        superArea.ChangeCellState(avoidingInfo[i].upRightIndex, (State)avoidingInfo[i].upRightState);
+        superArea.ChangeCellState(avoidingInfo[i].upLeftIndex, (State)avoidingInfo[i].upLeftState);
+        superArea.ChangeCellState(avoidingInfo[i].downRightIndex, (State)avoidingInfo[i].downRightState);
+        superArea.ChangeCellState(avoidingInfo[i].downLeftIndex, (State)avoidingInfo[i].downLeftState);
 
-    //If a turtlebot meets another turtlebot in a given radius
-    void AvoidTurtlebots(int turtlebotId, int otherTurtlebotId){
-        //If the turtlebot isn't currently avoiding.
-        if(TurtlebotManager::turtlebots[turtlebotId]->GetAvoiding() == true)
-            return;
 
-        //The turtlebot with the lowest id controls the avoidance algorithm
-        if(turtlebotId > otherTurtlebotId){
-            cout << "[" << otherTurtlebotId << "] will be controlled by: [" << turtlebotId << "]" << endl;
+        // // //Get cell Id to draw in Rviz
+        // int cellId = superArea.GetCellId(avoidingInfo[i].cellPos);
+        // if(cellId != -1){ //If the cell has a valid Id
+        //     Index index = superArea.GetCellIndex(avoidingInfo[i].cellPos);
+        //     Index subAreaIndex = superArea.GetSubAreaIndex(index);
+        //     //Draw in Rviz
+        //     markers.CellMarkerUpdate(cellId, Free, avoidingInfo[i].cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
+        // }
+        //  usleep(100);
+
+
+        
+        //UP
+        int cellId = superArea.GetCellId(avoidingInfo[i].upIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upState, superArea.GetCellPosition(avoidingInfo[i].upIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
         }
-        else{ //This turtlebot has the lowest id.
-            cout << "[" << turtlebotId << "] will control: [" << otherTurtlebotId << "]" << endl;
-            TurtlebotManager::turtlebots[turtlebotId]->EmptyList(); //Cancel this turtlebots movement
-            TurtlebotManager::turtlebots[otherTurtlebotId]->PauseMovement(); //Pause the other turtlebots movement, and resume after the avoid algorithm
-            
-            TurtlebotManager::turtlebots[turtlebotId]->SetAvoiding(true);
-            TurtlebotManager::turtlebots[otherTurtlebotId]->SetAvoiding(true);
-
-            //Mark as tempWall
-            Position otherTurtlebotPos = TurtlebotManager::turtlebots[otherTurtlebotId]->GetPosition();
-            Position cellPos = superArea.GetNearestCellPosition(otherTurtlebotPos, Unexplored, Free, true);
-            
-            /*superArea.ChangeCellState(cellPos, TempWall);
-            int cellId = superArea.GetCellId(cellPos);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index i = superArea.GetCellIndex(cellPos);
-                Index subAreaIndex = superArea.GetSubAreaIndex(i);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }*/
-
-            //AvoidingInfo
-            //Variables for when the avoid algorithm ends
-            AvoidingInfo a;
-            a.cellPos = cellPos;
-            a.available = true;
-            a.turtlebotId = turtlebotId;
-            a.otherTurtlebotId = otherTurtlebotId;
-
-
-            #pragma region uglycode
-            //UP
-            Index upIndex = superArea.GetCellIndex(cellPos);
-            upIndex.y = upIndex.y + 1;
-            a.upState = superArea.GetCellState(upIndex);
-            a.upIndex = upIndex;
-            superArea.ChangeCellState(upIndex, TempWall);
-            int cellId = superArea.GetCellId(upIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(upIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
             usleep(200);
-            //DOWN
-            Index downIndex = superArea.GetCellIndex(cellPos);
-            downIndex.y = downIndex.y - 1;
-            a.downState = superArea.GetCellState(downIndex);
-            a.downIndex = downIndex;
-            superArea.ChangeCellState(downIndex, TempWall);
-            cellId = superArea.GetCellId(downIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(downIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
-             usleep(200);
-            //RIGHT
-            Index rightIndex = superArea.GetCellIndex(cellPos);
-            rightIndex.x = rightIndex.x + 1;
-            a.rightState = superArea.GetCellState(rightIndex);
-            a.rightIndex = rightIndex;
-            superArea.ChangeCellState(rightIndex, TempWall);
-            cellId = superArea.GetCellId(rightIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(rightIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(rightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
-             usleep(200);
-            //LEFT
-            Index leftIndex = superArea.GetCellIndex(cellPos);
-            leftIndex.x = leftIndex.x - 1;
-            a.leftState = superArea.GetCellState(leftIndex);
-            a.leftIndex = leftIndex;
-            superArea.ChangeCellState(leftIndex, TempWall);
-            cellId = superArea.GetCellId(leftIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(leftIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(leftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
-             usleep(200);
-            //UP-RIGHT
-            Index upRightIndex = superArea.GetCellIndex(cellPos);
-            upRightIndex.y = upRightIndex.y + 1;
-            upRightIndex.x = upRightIndex.x + 1;
-            a.upRightState = superArea.GetCellState(upRightIndex);
-            a.upRightIndex = upRightIndex;
-            superArea.ChangeCellState(upRightIndex, TempWall);
-            cellId = superArea.GetCellId(upRightIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(upRightIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
-             usleep(200);
-            //UP-LEFT
-            Index upLeftIndex = superArea.GetCellIndex(cellPos);
-            upLeftIndex.y = upLeftIndex.y + 1;
-            upLeftIndex.x = upLeftIndex.x - 1;
-            a.upLeftState = superArea.GetCellState(upLeftIndex);
-            a.upLeftIndex = upLeftIndex;
-            superArea.ChangeCellState(upLeftIndex, TempWall);
-            cellId = superArea.GetCellId(upLeftIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(upLeftIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
-             usleep(200);
-            //DOWN-RIGHT   
-            Index downRightIndex = superArea.GetCellIndex(cellPos);
-            downRightIndex.x = downRightIndex.x + 1;
-            downRightIndex.y = downRightIndex.y - 1;
-            a.downRightState = superArea.GetCellState(downRightIndex);
-            a.downRightIndex = downRightIndex;
-            superArea.ChangeCellState(downRightIndex, TempWall);
-            cellId = superArea.GetCellId(downRightIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(downRightIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }
-             usleep(200);
-            //DOWN-LEFT
-            Index downLeftIndex = superArea.GetCellIndex(cellPos);
-            downLeftIndex.x = downLeftIndex.x - 1;
-            downLeftIndex.y = downLeftIndex.y - 1;
-            a.downLeftState = superArea.GetCellState(downLeftIndex);
-            a.downLeftIndex = downLeftIndex;
-            superArea.ChangeCellState(downLeftIndex, TempWall);
-            cellId = superArea.GetCellId(downLeftIndex);
-            if(cellId != -1){ //If the cell has a valid Id
-                Index subAreaIndex = superArea.GetSubAreaIndex(downLeftIndex);
-                //Draw in Rviz
-                markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-            }          
-
-
-            #pragma endregion
-            //Move avoidingInfo to the array       
-            avoidingInfo[turtlebotId] = a;
-
-            //New A* Pathfinding
-            StartAStarPathfinding(turtlebotId);
-            TurtlebotManager::turtlebots[turtlebotId]->EmptyNewPoint();
+        // //DOWN
+        cellId = superArea.GetCellId(avoidingInfo[i].downIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downState, superArea.GetCellPosition(avoidingInfo[i].downIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
         }
-        cout << "" << endl;
+            usleep(200);
+        // //RIGHT
+        cellId = superArea.GetCellId(avoidingInfo[i].rightIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].rightIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].rightState, superArea.GetCellPosition(avoidingInfo[i].rightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        // //LEFT
+        cellId = superArea.GetCellId(avoidingInfo[i].leftIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].leftIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].leftState, superArea.GetCellPosition(avoidingInfo[i].leftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        // //UP-RIGHT
+        cellId = superArea.GetCellId(avoidingInfo[i].upRightIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upRightIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upRightState, superArea.GetCellPosition(avoidingInfo[i].upRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        // //UP-LEFT
+        cellId = superArea.GetCellId(avoidingInfo[i].upLeftIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upLeftIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upLeftState, superArea.GetCellPosition(avoidingInfo[i].upLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        // //DOWN-RIGHT
+        cellId = superArea.GetCellId(avoidingInfo[i].downRightIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downRightIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downRightState, superArea.GetCellPosition(avoidingInfo[i].downRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        // //DOWN-LEFT
+        cellId = superArea.GetCellId(avoidingInfo[i].downLeftIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downLeftIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downLeftState, superArea.GetCellPosition(avoidingInfo[i].downLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }                       
+        #pragma endregion
+
+                                
+        //Allow movement again
+        TurtlebotManager::turtlebots[i]->SetAvoidingSlave(false);
+        //Resume movement for slave bot
+        TurtlebotManager::turtlebots[i]->ResumeMovement();
     }
 
-    void StopAvoiding(){ //Stops avoiding after x amounts of seconds. 
+
+
+    void StartAvoiding(int turtlebotId, int otherTurtlebotId){
+        TurtlebotManager::turtlebots[turtlebotId]->EmptyList(); //Cancel this turtlebots movement
+        TurtlebotManager::turtlebots[otherTurtlebotId]->PauseMovement(); //Pause the other turtlebots movement, and resume after the avoid algorithm
+        
+        TurtlebotManager::turtlebots[otherTurtlebotId]->SetAvoidingSlave(true);
+
+        //Mark as tempWall
+        Position otherTurtlebotPos = TurtlebotManager::turtlebots[otherTurtlebotId]->GetPosition();
+        Position cellPos = superArea.GetNearestCellPosition(otherTurtlebotPos, Unexplored, Free, true);
+
+        //AvoidingInfo
+        //Variables for when the avoid algorithm ends
+        AvoidingInfo a;
+        a.cellPos = cellPos;
+        a.avoiding = true;
+        a.masterId = turtlebotId;
+
+        #pragma region uglycode
+        //UP
+        Index upIndex = superArea.GetCellIndex(cellPos);
+        upIndex.y = upIndex.y + 1;
+        a.upState = superArea.GetCellState(upIndex);
+        a.upIndex = upIndex;
+        superArea.ChangeCellState(upIndex, TempWall);
+        int cellId = superArea.GetCellId(upIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(upIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+        usleep(200);
+        //DOWN
+        Index downIndex = superArea.GetCellIndex(cellPos);
+        downIndex.y = downIndex.y - 1;
+        a.downState = superArea.GetCellState(downIndex);
+        a.downIndex = downIndex;
+        superArea.ChangeCellState(downIndex, TempWall);
+        cellId = superArea.GetCellId(downIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(downIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        //RIGHT
+        Index rightIndex = superArea.GetCellIndex(cellPos);
+        rightIndex.x = rightIndex.x + 1;
+        a.rightState = superArea.GetCellState(rightIndex);
+        a.rightIndex = rightIndex;
+        superArea.ChangeCellState(rightIndex, TempWall);
+        cellId = superArea.GetCellId(rightIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(rightIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(rightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        //LEFT
+        Index leftIndex = superArea.GetCellIndex(cellPos);
+        leftIndex.x = leftIndex.x - 1;
+        a.leftState = superArea.GetCellState(leftIndex);
+        a.leftIndex = leftIndex;
+        superArea.ChangeCellState(leftIndex, TempWall);
+        cellId = superArea.GetCellId(leftIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(leftIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(leftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        //UP-RIGHT
+        Index upRightIndex = superArea.GetCellIndex(cellPos);
+        upRightIndex.y = upRightIndex.y + 1;
+        upRightIndex.x = upRightIndex.x + 1;
+        a.upRightState = superArea.GetCellState(upRightIndex);
+        a.upRightIndex = upRightIndex;
+        superArea.ChangeCellState(upRightIndex, TempWall);
+        cellId = superArea.GetCellId(upRightIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(upRightIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        //UP-LEFT
+        Index upLeftIndex = superArea.GetCellIndex(cellPos);
+        upLeftIndex.y = upLeftIndex.y + 1;
+        upLeftIndex.x = upLeftIndex.x - 1;
+        a.upLeftState = superArea.GetCellState(upLeftIndex);
+        a.upLeftIndex = upLeftIndex;
+        superArea.ChangeCellState(upLeftIndex, TempWall);
+        cellId = superArea.GetCellId(upLeftIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(upLeftIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(upLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        //DOWN-RIGHT   
+        Index downRightIndex = superArea.GetCellIndex(cellPos);
+        downRightIndex.x = downRightIndex.x + 1;
+        downRightIndex.y = downRightIndex.y - 1;
+        a.downRightState = superArea.GetCellState(downRightIndex);
+        a.downRightIndex = downRightIndex;
+        superArea.ChangeCellState(downRightIndex, TempWall);
+        cellId = superArea.GetCellId(downRightIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(downRightIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }
+            usleep(200);
+        //DOWN-LEFT
+        Index downLeftIndex = superArea.GetCellIndex(cellPos);
+        downLeftIndex.x = downLeftIndex.x - 1;
+        downLeftIndex.y = downLeftIndex.y - 1;
+        a.downLeftState = superArea.GetCellState(downLeftIndex);
+        a.downLeftIndex = downLeftIndex;
+        superArea.ChangeCellState(downLeftIndex, TempWall);
+        cellId = superArea.GetCellId(downLeftIndex);
+        if(cellId != -1){ //If the cell has a valid Id
+            Index subAreaIndex = superArea.GetSubAreaIndex(downLeftIndex);
+            //Draw in Rviz
+            markers.CellMarkerUpdate(cellId, TempWall, superArea.GetCellPosition(downLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+        }          
+
+
+        #pragma endregion
+        //Move avoidingInfo to the array       
+        avoidingInfo[otherTurtlebotId] = a;
+
+    }
+
+    //When one robot begins avoiding (tempwalls around them), update all other robot's paths.
+    void UpdateOtherRobotsPaths(int slaveRobot, int masterRobot){
         for(int i = 0; i < TurtlebotManager::numRobots; i++){
-            if(TurtlebotManager::turtlebots[i]->GetAvoiding() == true){ //If robot i is avoiding
-                //Check if avoiding array is available.
-                if(avoidingInfo[i].available){
-                    //Check the disstance between two robots (If they are over 1 m)
-                    if(superArea.ComparePositions(TurtlebotManager::turtlebots[i]->GetPosition(), 
-                                                  TurtlebotManager::turtlebots[avoidingInfo[i].otherTurtlebotId]->GetPosition(), 1) == false){
-                        
-                    
-                        avoidingInfo[i].available = false;
-                        
-                        //ugly code. sorry
-                        #pragma region badcode
-                        
-                        //superArea.ChangeCellState(avoidingInfo[i].cellPos, Free); //Change the cell state to free
-                        superArea.ChangeCellState(avoidingInfo[i].upIndex, (State)avoidingInfo[i].upState);
-                        superArea.ChangeCellState(avoidingInfo[i].downIndex, (State)avoidingInfo[i].downState);
-                        superArea.ChangeCellState(avoidingInfo[i].leftIndex, (State)avoidingInfo[i].leftState);
-                        superArea.ChangeCellState(avoidingInfo[i].rightIndex, (State)avoidingInfo[i].rightState);
-                        superArea.ChangeCellState(avoidingInfo[i].upRightIndex, (State)avoidingInfo[i].upRightState);
-                        superArea.ChangeCellState(avoidingInfo[i].upLeftIndex, (State)avoidingInfo[i].upLeftState);
-                        superArea.ChangeCellState(avoidingInfo[i].downRightIndex, (State)avoidingInfo[i].downRightState);
-                        superArea.ChangeCellState(avoidingInfo[i].downLeftIndex, (State)avoidingInfo[i].downLeftState);
+            if(i != slaveRobot){
+                //New A* Pathfinding
+                //If turtlebot was on its way to goalPos, then resume back to goal pos!
+                if(TurtlebotManager::turtlebots[i]->GetPathfindingStartPos() == true){
+                    TurtlebotManager::turtlebots[i]->SetPathfindingStartPos(true); //Set this variable to true, so it only happens once!                                                              
+                    cout << "[" << i << "] is avoiding!. Will return to start position" << endl;
+                    Position goalPos = TurtlebotManager::turtlebots[i]->GetStartPos();
+                    list<Position> path = superArea.AStarPathfindingToStart(TurtlebotManager::turtlebots[i]->GetPosition(), goalPos, true);
 
+                    //Set pathfinding variables
+                    TurtlebotManager::turtlebots[i]->SetPathfinding(true);
+                    TurtlebotManager::turtlebots[i]->SetForcePathfind(true);
+                    //Give the turtlebot movements
+                    for (auto const& p : path) {
+                        TurtlebotManager::turtlebots[i]->NewMovement(traverse, p); 
+                    }
+                    TurtlebotManager::turtlebots[i]->SetPathfindingPoint(goalPos);
+                    cout << "-------------" << endl;
 
-                        // // //Get cell Id to draw in Rviz
-                        // int cellId = superArea.GetCellId(avoidingInfo[i].cellPos);
-                        // if(cellId != -1){ //If the cell has a valid Id
-                        //     Index index = superArea.GetCellIndex(avoidingInfo[i].cellPos);
-                        //     Index subAreaIndex = superArea.GetSubAreaIndex(index);
-                        //     //Draw in Rviz
-                        //     markers.CellMarkerUpdate(cellId, Free, avoidingInfo[i].cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        // }
-                        //  usleep(100);
-
-
-                        
-                        //UP
-                        int cellId = superArea.GetCellId(avoidingInfo[i].upIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upState, superArea.GetCellPosition(avoidingInfo[i].upIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
+                } 
+                else{
+                    if(i != masterRobot)
+                        StartAStarPathfinding(i);
+                    else{
+                        //If the master robot is stuck, then swap slave and master
+                        if(StartAStarPathfinding(i) == false){
+                            StopAvoiding(slaveRobot);
+                            cout << "STOPPING AVOID AS NO PATH WAS FOUND" << endl;
+                            StartAvoiding(slaveRobot, i);
                         }
-                         usleep(200);
-                        // //DOWN
-                        cellId = superArea.GetCellId(avoidingInfo[i].downIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downState, superArea.GetCellPosition(avoidingInfo[i].downIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }
-                         usleep(200);
-                        // //RIGHT
-                        cellId = superArea.GetCellId(avoidingInfo[i].rightIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].rightIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].rightState, superArea.GetCellPosition(avoidingInfo[i].rightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }
-                         usleep(200);
-                        // //LEFT
-                        cellId = superArea.GetCellId(avoidingInfo[i].leftIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].leftIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].leftState, superArea.GetCellPosition(avoidingInfo[i].leftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }
-                         usleep(200);
-                        // //UP-RIGHT
-                        cellId = superArea.GetCellId(avoidingInfo[i].upRightIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upRightIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upRightState, superArea.GetCellPosition(avoidingInfo[i].upRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }
-                         usleep(200);
-                        // //UP-LEFT
-                        cellId = superArea.GetCellId(avoidingInfo[i].upLeftIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].upLeftIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].upLeftState, superArea.GetCellPosition(avoidingInfo[i].upLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }
-                         usleep(200);
-                        // //DOWN-RIGHT
-                        cellId = superArea.GetCellId(avoidingInfo[i].downRightIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downRightIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downRightState, superArea.GetCellPosition(avoidingInfo[i].downRightIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }
-                         usleep(200);
-                        // //DOWN-LEFT
-                        cellId = superArea.GetCellId(avoidingInfo[i].downLeftIndex);
-                        if(cellId != -1){ //If the cell has a valid Id
-                            Index subAreaIndex = superArea.GetSubAreaIndex(avoidingInfo[i].downLeftIndex);
-                            //Draw in Rviz
-                            markers.CellMarkerUpdate(cellId, (State)avoidingInfo[i].downLeftState, superArea.GetCellPosition(avoidingInfo[i].downLeftIndex), subAreaIndex, superArea.GetNumSubAreasSqrt());
-                        }                       
-                        #pragma endregion
-
-                                                
-                        //Allow movement again
-                        TurtlebotManager::turtlebots[avoidingInfo[i].turtlebotId]->SetAvoiding(false);
-                        TurtlebotManager::turtlebots[avoidingInfo[i].otherTurtlebotId]->SetAvoiding(false);
-                        //Resume movement for otherTurtlebot
-                        TurtlebotManager::turtlebots[avoidingInfo[i].otherTurtlebotId]->ResumeMovement();
                     }
                 }
             }
         }
     }
+
+
+    //If a turtlebot meets another turtlebot in a given radius
+    void AvoidTurtlebots(int turtlebotId, int otherTurtlebotId){
+        //If turtlebot isn't currently a slave (standing still with tempwalls around)
+        if(TurtlebotManager::turtlebots[turtlebotId]->GetAvoidingSlave() == true)
+            return;
+
+        //If the Other turtlebot is already a slave, do nothing.
+        if(TurtlebotManager::turtlebots[otherTurtlebotId]->GetAvoidingSlave() == true)
+            return;
+
+        //The turtlebot with the lowest id controls the avoidance algorithm
+        if(turtlebotId > otherTurtlebotId){
+            cout << "[" << turtlebotId << "] will be controlled by: [" << otherTurtlebotId << "]" << endl;
+        }
+        else{ //This turtlebot has the lowest id.
+            cout << "[" << turtlebotId << "] will control: [" << otherTurtlebotId << "]" << endl;
+            StartAvoiding(turtlebotId, otherTurtlebotId);
+
+            UpdateOtherRobotsPaths(otherTurtlebotId, turtlebotId);
+
+            TurtlebotManager::turtlebots[turtlebotId]->EmptyNewPoint();
+        }
+        cout << "" << endl;
+    }
+ 
+    void CheckIfStopAvoiding(){ //Stops avoiding after x amounts of seconds. 
+        for(int i = 0; i < TurtlebotManager::numRobots; i++){
+            if(TurtlebotManager::turtlebots[i]->GetAvoidingSlave() == true){ //If robot i is avoiding
+                //Check if avoiding array is available.
+                if(avoidingInfo[i].avoiding == true){
+                    //Check the disstance between two robots (If they are over x m)
+                    if(superArea.ComparePositions(TurtlebotManager::turtlebots[i]->GetPosition(), 
+                                                  TurtlebotManager::turtlebots[avoidingInfo[i].masterId]->GetPosition(), (cellSpace * 2) + 0.05) == false){
+                                                      StopAvoiding(i);
+                    }                                   
+                }
+            }
+        }
+    }
+
+
 
     //Gets a new point from each turtlebot. Uses this point for path planning if its a wall
     void GetPoints(){
@@ -602,6 +667,7 @@ namespace MarkersManager{
         }
     }
 
+
     //Checks if a turtlebot has reached a free cell. 
     void CheckFreeCell()
     {
@@ -621,7 +687,6 @@ namespace MarkersManager{
                         Index subAreaIndex = superArea.GetSubAreaIndex(i);
                         markers.CellMarkerUpdate(cellId, Free, cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
                     }
-//                        markers.CellMarkerUpdate(cellId, Free, cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
 
                     superArea.ChangeCellState(cellPos, Free); //Changes the cell state to Free
                     TurtlebotManager::turtlebots[i]->EmptyfreeCell(); //Resets the "freecell" pos to (0,0)
@@ -632,7 +697,29 @@ namespace MarkersManager{
                     if(TurtlebotManager::turtlebots[i]->GetPathfinding() == true && TurtlebotManager::turtlebots[i]->GetMovementsSize() == 0){
                         TurtlebotManager::turtlebots[i]->SetPathfinding(false);
                         TurtlebotManager::turtlebots[i]->SetForcePathfind(false);
-                        cout << "Stopping pathfinding for [" << i << "]" << endl;
+                        //cout << "Stopping pathfinding for [" << i << "]" << endl;
+
+                        //If the robot reached its start pos destination
+                        // if(TurtlebotManager::turtlebots[i]->GetPathfindingStartPos() == true){
+                        //     cout << "Has reached start position!" << endl;
+                        //     Index cellIndex2;
+                        //     cellIndex2.x = 7;
+                        //     cellIndex2.y = 8;
+                        //     Position gPos = superArea.GetCellPosition(cellIndex2);
+
+                        //     list<Position> path = superArea.AStarPathfindingToStart(TurtlebotManager::turtlebots[i]->GetStartPos(), gPos, true);
+
+                        //     //Set pathfinding variables
+                        //     TurtlebotManager::turtlebots[i]->SetPathfinding(true);
+                        //     TurtlebotManager::turtlebots[i]->SetPathfindingPoint(gPos);
+                        //     TurtlebotManager::turtlebots[i]->SetForcePathfind(true);
+                        //     //Give the turtlebot movements
+                        //     for (auto const& p : path) {
+                        //         TurtlebotManager::turtlebots[i]->NewMovement(traverse, p); 
+                        //     };
+                        //     cout << "-------------" << endl;
+                        // }
+
                     }
 
                     
@@ -646,13 +733,13 @@ namespace MarkersManager{
                         //If "newCell" was found using PSO
                         if(newCell.x != -1){
 
-                            cout << "Robot [" << i << "]" << "'s next pos: (" << newCell.x << "," << newCell.y << ")" << endl;
-                            cout << "----------------------------------" << endl;   
+                            //cout << "Robot [" << i << "]" << "'s next pos: (" << newCell.x << "," << newCell.y << ")" << endl;
+                            //cout << "----------------------------------" << endl;   
                             TurtlebotManager::turtlebots[i]->NewMovement(traverse, newCell);
                         }
                         //"NewCell could not be found, and A* will then find the next position"
                         else{
-                            cout << "New cell could not be found using PSO, A* will be used" << endl;
+                            //cout << "New cell could not be found using PSO, A* will be used" << endl;
                             StartAStarPathfinding(i);
                         }
                     }
@@ -661,10 +748,10 @@ namespace MarkersManager{
                     else if(TurtlebotManager::turtlebots[i]->GetPathfinding() == true && TurtlebotManager::turtlebots[i]->GetPathfindingStartPos() == false){
                         //Check the A* final path point, to see if it has been changed
                         if(TurtlebotManager::turtlebots[i]->GetMovementsSize() > 0){
-                            cout << i << ": The robot's goal position has been updated by another robot." << endl;
+                            //cout << i << ": The robot's goal position has been updated by another robot." << endl;
                             Position goalPos = TurtlebotManager::turtlebots[i]->GetMovements().back();
                             int cellState = superArea.GetCellState(goalPos);
-                            if(cellState == Wall || cellState == Free){
+                            if(cellState == Wall || cellState == Free || cellState == TempWall){
                                 StartAStarPathfinding(i);
                             }
                         }
@@ -683,10 +770,27 @@ namespace MarkersManager{
                     Position turtleBotPos = TurtlebotManager::turtlebots[i]->GetPosition();
                     Position otherTurtleBotPos = TurtlebotManager::turtlebots[j]->GetPosition();
 
-                    if(superArea.ComparePositions(turtleBotPos, otherTurtleBotPos, 0.8)){
+                    if(superArea.ComparePositions(turtleBotPos, otherTurtleBotPos, cellSpace * 2)){
                         MarkersManager::AvoidTurtlebots(i, j);
                     }
-                    
+                }
+            }
+        }
+    }
+
+
+
+    void FreeRobots(){ //iff robots are stuck. attempt to free
+        for(int i = 0; i < TurtlebotManager::numRobots; i++){ //Change back to two.
+            //Reset stuck timer.
+            if(TurtlebotManager::turtlebots[i]->GetAvoidingSlave() == true || TurtlebotManager::turtlebots[i]->GetMovementsSize() > 0)
+                stuckTimer[i] = 0;
+            if(TurtlebotManager::turtlebots[i]->GetMovementsSize() == 0 ){
+                stuckTimer[i]++;
+                if(stuckTimer [i] > 70){//Stuck over 5 seconds
+                    cout << "ROBOT [" << i << "] IS STUCK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+                    StartAStarPathfinding(i);
+                    stuckTimer[i] = 0;
                 }
             }
         }
@@ -696,9 +800,9 @@ namespace MarkersManager{
         //Start PSO
         Position goalPos = superArea.GetNearestCellAStar(TurtlebotManager::turtlebots[0]->GetPosition(), Unexplored);
         AStarPathInfo pathInfo;
-        pathInfo = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[1]->GetPosition(), Unexplored);
+        pathInfo = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[1]->GetPosition(), Unexplored, TurtlebotManager::GetOtherTurtlebotsPosition(1), false);
         AStarPathInfo pathInfo2;
-        pathInfo2 = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[2]->GetPosition(), Unexplored);
+        pathInfo2 = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[2]->GetPosition(), Unexplored, TurtlebotManager::GetOtherTurtlebotsPosition(2), false);
 
         TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
 
@@ -732,20 +836,24 @@ namespace MarkersManager{
 
     void TestSpreadOut(){
         //Start PSO
-        Position goalPos;
-        goalPos.x = 3.75;
-        goalPos.y = 4.75;
-        goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
+        Position goalPos = superArea.GetNearestCellAStar(TurtlebotManager::turtlebots[0]->GetPosition(), Unexplored);
+        AStarPathInfo pathInfo;
+        pathInfo = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[1]->GetPosition(), Unexplored,  TurtlebotManager::GetOtherTurtlebotsPosition(0), false);
 
         TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
 
-        goalPos;
-        goalPos.x = 1.75;
-        goalPos.y = 5.75;
-        goalPos = superArea.GetNearestCellPosition(goalPos, Unexplored, Free, false);
-
-        TurtlebotManager::turtlebots[1]->NewMovement(traverse, goalPos);
-
+        if(pathInfo.cellPos.x != -1) { //Check if A* could find a cell in another subarea
+            //Set pathfinding variables
+            TurtlebotManager::turtlebots[1]->SetPathfinding(true);
+            TurtlebotManager::turtlebots[1]->SetPathfindingPoint(pathInfo.cellPos);
+            TurtlebotManager::turtlebots[1]->SetForcePathfind(true);
+            //Give the turtlebot movements
+            for (auto const& p : pathInfo.path) {
+                TurtlebotManager::turtlebots[1]->NewMovement(traverse, p); 
+            }
+            Index newSubArea = superArea.GetSubArea(pathInfo.cellPos);
+            cout << "[1] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+        }
     }
 }
 
@@ -764,9 +872,9 @@ int main(int argc, char *argv[])
     //Main loop
     Rate loop_rate(10);
 
-   // MarkersManager::SpreadOut();
+    MarkersManager::SpreadOut();
 
-   MarkersManager::TestSpreadOut();
+  // MarkersManager::TestSpreadOut();
 
     while (ok())
     {
@@ -776,7 +884,8 @@ int main(int argc, char *argv[])
         MarkersManager::CheckFreeCell();
         MarkersManager::GetPoints(); //Gets a new point from each turtlebot. Uses this point for path planning if its a wall
         MarkersManager::GetTurtlebotPositions();
-        MarkersManager::StopAvoiding(); //Reverts all "TempWall" cells back to "Free" after x amount of seconds
+        MarkersManager::CheckIfStopAvoiding(); //Reverts all "TempWall" cells back to "Free" after x amount of seconds
+        MarkersManager::FreeRobots(); //Attemps to unstuck a robot if they have been idle to 10 seconds.
     
 
         ros::spinOnce(); //Spin for callback functions 

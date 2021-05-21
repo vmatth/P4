@@ -232,7 +232,7 @@ public:
             }
         }
         //In cases where the position is not located in any subarea
-        cout << "SubArea not found for pos (" << pos.x << "," << pos.y << ")" << endl;
+        //cout << "SubArea not found for pos (" << pos.x << "," << pos.y << ")" << endl;
         subA.x = -1;
         subA.y = -1;       
         return subA;
@@ -500,22 +500,22 @@ public:
        // PrintPosition(back, "Back: ");
 
         if(GetCellState(front) == Unexplored && CompareSubAreas(front, currentPosition)){
-            cout << "Front cell is unexplored!" << endl;
+            //cout << "Front cell is unexplored!" << endl;
             return front;
         }
         else if(GetCellState(right) == Unexplored && CompareSubAreas(right, currentPosition)){
-            cout << "Right cell is unexplored!" << endl; 
+            //cout << "Right cell is unexplored!" << endl; 
             return right;
         }
         else if(GetCellState(left) == Unexplored && CompareSubAreas(left, currentPosition)){
-            cout << "Left cell is unexplored!" << endl; 
+            //cout << "Left cell is unexplored!" << endl; 
             return left;
         }
         else if(GetCellState(back) == Unexplored && CompareSubAreas(back, currentPosition)){
-            cout << "Back cell is unexplored!" << endl;
+            //cout << "Back cell is unexplored!" << endl;
             return back;
         } else {
-            cout << "Find nearest unexplored cell" << endl;
+            //cout << "Find nearest unexplored cell" << endl;
             Position noPos;
             noPos.x = -1;
             return noPos; //Returns noPos so the program knows that it will switch from PSO to A*
@@ -777,62 +777,83 @@ public:
 
 
     //Finds the nearest cell in another subArea
-    AStarPathInfo GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState){
+    AStarPathInfo GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState, list<Position> otherTurtlebotsPositions, bool prioritizeEmptySubArea){
+        //Find out which subareas the other turtlebots are in.
+        list<Index> otherTurtlebotsSubareas;
+        for(auto const& p : otherTurtlebotsPositions){
+            otherTurtlebotsSubareas.push_back(GetSubArea(p));
+        }
+
         cout << "Get nearest cell in another SubArea" << endl;
         int shortestPathSize = 1000; //Temp value
         list<Position> shortestPath;
         for (int r = 0; r < rows; r++){
             for (int c = 0; c < cols; c++){
                 if (grid[r][c] == cellState){
-                    if (CompareSubAreas(sourcePos, gridPositions[r][c]) == false){
-
-                        Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
-                        Index endPosIndex;
-                        endPosIndex.x = r;
-                        endPosIndex.y = c;
-
-                        //Flip (x,y) to (y,x) as A* uses (y,x)
-                        startPosIndex = FlipPos(startPosIndex);
-                        endPosIndex = FlipPos(endPosIndex);
-
-                        //Converts to grid to a new grid that A* can use
-                        gridtoaStar();
-
-                        list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
-                        tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex, false);
-
-                        //Get the path size
-                        int pathSize = 0;
-                        for(auto const& p : tempPos){
-                            pathSize++;
+                    if (CompareSubAreas(sourcePos, gridPositions[r][c]) == false){ //Check if in another subarea
+                        //If prioritize empty subareas
+                        bool canCheckThisCell = true;
+                        if(prioritizeEmptySubArea == true){
+                            for(auto const& p : otherTurtlebotsSubareas){
+                                Index i; i.x = r; i.y = c;
+                                if(p.x == GetSubAreaIndex(i).x && p.y == GetSubAreaIndex(i).y)
+                                    canCheckThisCell = false;
+                            }
                         }
-                        
+                        if(canCheckThisCell){
 
-                        //Compare the new path size to the one that is currently shortest
-                        if(pathSize < shortestPathSize && pathSize != 0){ //If new path is shorter than the previous
-                            shortestPath.clear(); //Clear current shortestPath
-                            //Store new path
-                            shortestPathSize = pathSize;
-                            for (auto const& p : tempPos) {
-                                Position newPos = gridPositions[int(p.x)][int(p.y)];
-                                shortestPath.push_back(newPos);  
+                            Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                            Index endPosIndex;
+                            endPosIndex.x = r;
+                            endPosIndex.y = c;
 
-                            }                           
-                        }       
+                            //Flip (x,y) to (y,x) as A* uses (y,x)
+                            startPosIndex = FlipPos(startPosIndex);
+                            endPosIndex = FlipPos(endPosIndex);
+
+                            //Converts to grid to a new grid that A* can use
+                            gridtoaStar();
+
+                            list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
+                            tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex, false);
+
+                            //Get the path size
+                            int pathSize = 0;
+                            for(auto const& p : tempPos){
+                                pathSize++;
+                            }
+                            
+
+                            //Compare the new path size to the one that is currently shortest
+                            if(pathSize < shortestPathSize && pathSize != 0){ //If new path is shorter than the previous
+                                shortestPath.clear(); //Clear current shortestPath
+                                //Store new path
+                                shortestPathSize = pathSize;
+                                for (auto const& p : tempPos) {
+                                    Position newPos = gridPositions[int(p.x)][int(p.y)];
+                                    shortestPath.push_back(newPos);  
+
+                                }                           
+                            } 
+                        }      
                     }
                 }
             }
         }
+        AStarPathInfo pathInfo;
+
+        //If we could not find any cells (Possibility of there only being subareas left WITH other turtlebots.)
+        if(shortestPathSize == 0){
+            pathInfo = GetNearestCellAStarAnotherSubArea(sourcePos, cellState, otherTurtlebotsPositions, false);
+        }
+
         //Print the path
-        cout << "Nearest Cell in another sub area using AStar: " << endl;
+        /*cout << "Nearest Cell in another sub area using AStar: " << endl;
         for (auto const& p : shortestPath) {
             cout << "-> ";
             cout << "(" << p.x << "," << p.y << ")"; 
         }          
-        cout << " " << endl;
-
-        //Create struct to return
-        AStarPathInfo pathInfo;
+        cout << " " << endl;*/
 
         //If A* could not find any position, return (-1, -1)
         if(shortestPath.empty()){
