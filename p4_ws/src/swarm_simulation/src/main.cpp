@@ -73,9 +73,9 @@ namespace MarkersManager{
     //float cellSpace = 1.0f/3.0f;
 
     float cellSpace = 0.5;
-    //SuperArea superArea(10, 4, cellSpace);
+    SuperArea superArea(10, 4, cellSpace);
 
-    SuperArea superArea(16, 16, cellSpace);
+    //SuperArea superArea(16, 16, cellSpace);
 
 
     AvoidingInfo avoidingInfo[3];//Array of all tempWall cells that will be reverted.
@@ -196,7 +196,10 @@ namespace MarkersManager{
         if(superArea.GetCellState(robotCell) == Wall || superArea.GetCellState(robotCell) == TempWall){
             //Go back to prev pos
             goalPos = superArea.GetNearestCellAStar(turtlebotPos, Free); 
-            TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, goalPos);
+            if(goalPos.x = -1)
+                TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, goalPos);
+            else
+                TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, TurtlebotManager::turtlebots[turtlebotId]->GetPrevPosition());
             cout << "A* to free." << endl;
             return true;
             //TurtlebotManager::turtlebots[0]->PrintPosition(goalPos, "Free area goalpos: ");
@@ -233,8 +236,8 @@ namespace MarkersManager{
                     TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, p); 
                 }
                 Index newSubArea = superArea.GetSubArea(pathInfo.cellPos);
-                cout << "New Sub Area: ";
-                cout << "(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+                //cout << "New Sub Area: ";
+                //cout << "(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
                 pathFound = true;
             }
             else{ //No valid points could be found in any other subarea. The robot will then return to start position
@@ -564,6 +567,7 @@ namespace MarkersManager{
                 //New A* Pathfinding
                 //If turtlebot was on its way to goalPos, then resume back to goal pos!
                 if(TurtlebotManager::turtlebots[i]->GetPathfindingStartPos() == true){
+                    TurtlebotManager::turtlebots[i]->EmptyList();
                     TurtlebotManager::turtlebots[i]->SetPathfindingStartPos(true); //Set this variable to true, so it only happens once!                                                              
                     cout << "[" << i << "] is avoiding!. Will return to start position" << endl;
                     Position goalPos = TurtlebotManager::turtlebots[i]->GetStartPos();
@@ -583,8 +587,9 @@ namespace MarkersManager{
                 else{
                     if(i != masterRobot)
                         StartAStarPathfinding(i);
-                    else{
+                    else if(i == masterRobot){
                         //If the master robot is stuck, then swap slave and master
+                        cout << "New path for Master robot" << endl;
                         if(StartAStarPathfinding(i) == false){
                             StopAvoiding(slaveRobot);
                             cout << "STOPPING AVOID AS NO PATH WAS FOUND" << endl;
@@ -846,6 +851,8 @@ namespace MarkersManager{
         Position goalPos = superArea.GetNearestCellAStar(TurtlebotManager::turtlebots[0]->GetPosition(), Unexplored);
         AStarPathInfo pathInfo;
         pathInfo = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[1]->GetPosition(), Unexplored,  TurtlebotManager::GetOtherTurtlebotsPosition(0), false);
+        AStarPathInfo pathInfo2;
+        pathInfo2 = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[2]->GetPosition(), Unexplored,  TurtlebotManager::GetOtherTurtlebotsPosition(0), false);
 
         TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
 
@@ -859,6 +866,19 @@ namespace MarkersManager{
                 TurtlebotManager::turtlebots[1]->NewMovement(traverse, p); 
             }
             Index newSubArea = superArea.GetSubArea(pathInfo.cellPos);
+            cout << "[1] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+        }
+
+        if(pathInfo2.cellPos.x != -1) { //Check if A* could find a cell in another subarea
+            //Set pathfinding variables
+            TurtlebotManager::turtlebots[2]->SetPathfinding(true);
+            TurtlebotManager::turtlebots[2]->SetPathfindingPoint(pathInfo2.cellPos);
+            TurtlebotManager::turtlebots[2]->SetForcePathfind(true);
+            //Give the turtlebot movements
+            for (auto const& p : pathInfo2.path) {
+                TurtlebotManager::turtlebots[2]->NewMovement(traverse, p); 
+            }
+            Index newSubArea = superArea.GetSubArea(pathInfo2.cellPos);
             cout << "[1] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
         }
     }
@@ -882,9 +902,9 @@ int main(int argc, char *argv[])
     Index goalIndex1; goalIndex1.x = 24; goalIndex1.y = 3;
     Index goalIndex2; goalIndex2.x = 11; goalIndex2.y = 16;
 
-    MarkersManager::SpreadOut(goalIndex1, goalIndex2);
+    //MarkersManager::SpreadOut(goalIndex1, goalIndex2);
 
-  // MarkersManager::TestSpreadOut();
+   MarkersManager::TestSpreadOut();
 
     while (ok())
     {

@@ -910,8 +910,8 @@ public:
 
         Index startPosIndex = GetCellFromPosition(startPos);
 
-        PrintPosition(startPos, "Starting pathfinding from: ");
-        PrintPosition(endPos, "to: ");
+        //PrintPosition(startPos, "Starting pathfinding from: ");
+        //PrintPosition(endPos, "to: ");
 
         //cout << "Start Pos INDEX: (" << startPosIndex.x << "," << startPosIndex.y << ")" << endl;
         //cout << "End Pos INDEX: (" << endPosIndex.x << "," << endPosIndex.y << ")" << endl;
@@ -990,8 +990,8 @@ public:
         Index endPosIndex = GetNearestCellIndex(endPos, Unexplored, Free, false);
         Index startPosIndex = GetNearestCellIndex(startPos, Unexplored, Free, false); 
 
-        PrintPosition(startPos, "Starting pathfinding from: ");
-        PrintPosition(endPos, "to: ");
+        //PrintPosition(startPos, "Starting pathfinding from: ");
+        //PrintPosition(endPos, "to: ");
 
         //cout << "Start Pos INDEX: (" << startPosIndex.x << "," << startPosIndex.y << ")" << endl;
         //cout << "End Pos INDEX: (" << endPosIndex.x << "," << endPosIndex.y << ")" << endl;
