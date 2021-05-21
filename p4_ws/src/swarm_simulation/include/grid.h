@@ -637,6 +637,34 @@ public:
         }
     }
 
+    //Gets the cell that a robot is near from its position
+    Index GetCellFromPosition(Position sourcePos){
+
+        Index nearestCell; //Cell index that will be returned
+        nearestCell.x = -1; //Will be overriden if it finds a nearest cell
+
+        double shortestDistance = 1000; //Temporary value for distance
+
+        for(int r = 0; r < rows; r++){
+            for(int c = 0; c < cols; c++){
+                double distToCell = sqrt(pow(sourcePos.x - gridPositions[r][c].x, 2) 
+                                        + pow(sourcePos.y - gridPositions[r][c].y, 2));
+            
+                //If new cell is closer
+                if(distToCell <= shortestDistance){
+                    shortestDistance = distToCell;
+                    nearestCell.x = r;
+                    nearestCell.y = c;
+                }
+            }
+
+        }
+
+        if(nearestCell.x == -1)
+            cout << "There were no cells near pos (" << sourcePos.x << "," << sourcePos.y << ")" << endl;
+        return nearestCell;
+    }
+
     //Gets the cell that is closest to the the source position, and the cell must be state: "cell state"
     Index GetNearestCellIndex(Position sourcePos, State cellState, State secondState, bool sameSubArea){
 
@@ -692,7 +720,7 @@ public:
         return nearestCell;
     }
 
-    //Finds the nearest cell in the same subarea using AStar
+    //Finds the nearest cell in the same subarea using AStar 
     Position GetNearestCellAStar(Position sourcePos, State cellState){
         int shortestPathSize = 1000; //Temp value
         list<Position> shortestPath;
@@ -701,7 +729,8 @@ public:
                 if (grid[r][c] == cellState){
                     if (CompareSubAreas(sourcePos, gridPositions[r][c])){
 
-                        Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                        //Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                        Index startPosIndex = GetCellFromPosition(sourcePos);                  
                         Index endPosIndex;
                         endPosIndex.x = r;
                         endPosIndex.y = c;
@@ -711,7 +740,7 @@ public:
                         endPosIndex = FlipPos(endPosIndex);
 
                         //Converts to grid to a new grid that A* can use
-                        gridtoaStar();
+                        gridtoaStar(startPosIndex);
 
                         list<Index> tempPos; //The positions from A* will be stored in this list (as indexes)
                         tempPos = aStarPATH(newgrid, rows, cols, startPosIndex, endPosIndex, false);
@@ -757,12 +786,12 @@ public:
         }
 
         //Print the path
-        cout << "Nearest Cell using AStar: " << endl;
+        /*cout << "Nearest Cell using AStar: " << endl;
         for (auto const& p : shortestPath) {
             cout << "-> ";
             cout << "(" << p.x << "," << p.y << ")"; 
         }          
-        cout << " " << endl;
+        cout << " " << endl;*/
 
         //If A* could not find any position, return (-1, -1)
         if(shortestPath.empty()){
@@ -802,7 +831,8 @@ public:
                         }
                         if(canCheckThisCell){
 
-                            Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                           // Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
+                            Index startPosIndex = GetCellFromPosition(sourcePos);
                             Index endPosIndex;
                             endPosIndex.x = r;
                             endPosIndex.y = c;
@@ -877,7 +907,8 @@ public:
 
         //GetNearestCellPosition(endPos, Unexplored, false);
         Index endPosIndex = GetNearestCellIndex(endPos, Unexplored, Unexplored, false);
-        Index startPosIndex = GetNearestCellIndex(startPos, Unexplored, Free, false); 
+
+        Index startPosIndex = GetCellFromPosition(startPos);
 
         PrintPosition(startPos, "Starting pathfinding from: ");
         PrintPosition(endPos, "to: ");
@@ -1054,6 +1085,26 @@ public:
                     newgrid[x][y] = 1;
                 }
                 else newgrid[x][y] = 0;
+            }
+        }
+
+    }
+
+    void gridtoaStar(Index sourcePos){ //This grid to a star changes "sourcePos" to Free (used if the robot is in a wall cell and needs to find a free cell path)
+        //Create arrays for grids
+        newgrid = new int*[rows];
+        for(int i = 0; i < rows; i++)
+            newgrid[i] = new int[rows];
+
+        for(int x = 0; x < rows; x++){
+            for(int y = 0; y < cols; y++){
+                if (grid[x][y] == Unexplored || grid[x][y] == Free){
+                    newgrid[x][y] = 1;
+                }
+                else newgrid[x][y] = 0;
+                if(x == sourcePos.y && y == sourcePos.x){
+                    newgrid[x][y] = 1;
+                }
             }
         }
 

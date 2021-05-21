@@ -73,15 +73,12 @@ namespace MarkersManager{
     //float cellSpace = 1.0f/3.0f;
 
     float cellSpace = 0.5;
-    SuperArea superArea(10, 4, cellSpace);
+    //SuperArea superArea(10, 4, cellSpace);
 
-    //float cellSpace = 0.5;
-    //SuperArea superArea(6, 1, cellSpace);
-
+    SuperArea superArea(16, 16, cellSpace);
 
 
-
-    AvoidingInfo avoidingInfo[3];//Array of all tempWall cells that will be reverted
+    AvoidingInfo avoidingInfo[3];//Array of all tempWall cells that will be reverted.
 
     void DrawAllCells(){
         usleep(400000);
@@ -189,7 +186,25 @@ namespace MarkersManager{
         TurtlebotManager::turtlebots[turtlebotId]->EmptyList();
         //Find a new point using A*
         Position turtlebotPos = TurtlebotManager::turtlebots[turtlebotId]->GetPosition();
-        Position goalPos = superArea.GetNearestCellAStar(turtlebotPos, Unexplored);
+        Position goalPos;
+        
+        Index robotCell = superArea.GetCellFromPosition(turtlebotPos); //Find the cell that the robot is in
+
+        bool freeCell = false;
+
+        //If the robot is inside a wall cell (can happen if the robot detects the wall late.), then A* to nearest Free
+        if(superArea.GetCellState(robotCell) == Wall || superArea.GetCellState(robotCell) == TempWall){
+            //Go back to prev pos
+            goalPos = superArea.GetNearestCellAStar(turtlebotPos, Free); 
+            TurtlebotManager::turtlebots[turtlebotId]->NewMovement(traverse, goalPos);
+            cout << "A* to free." << endl;
+            return true;
+            //TurtlebotManager::turtlebots[0]->PrintPosition(goalPos, "Free area goalpos: ");
+        }
+        else{
+            //cout << "A* to unexplored." << endl;
+            goalPos = superArea.GetNearestCellAStar(turtlebotPos, Unexplored); 
+        }
 
         bool pathFound = false; //Return value
         
@@ -279,7 +294,6 @@ namespace MarkersManager{
             }            
             //If the wall is a part of the PATH, update the robot's path.
             if(inPath){
-                //cout << "Wall is a part of A* PATH, new path made" << endl;
 
                 if(TurtlebotManager::turtlebots[turtlebotId]->GetForcePathfind() == false) //If not forcing the goalPos, find the nearest cell and pathfind to it
                     StartAStarPathfinding(turtlebotId);
@@ -289,7 +303,7 @@ namespace MarkersManager{
                     //Find a new point using A*
                     Position turtlebotPos = TurtlebotManager::turtlebots[turtlebotId]->GetPosition();
                     Position goalPos = TurtlebotManager::turtlebots[turtlebotId]->GetPathfindingPoint();
-                    
+                
                     //If the robot hasn't reached its goal yet
                     if(superArea.ComparePositions(turtlebotPos, goalPos, cellSpace) == false){
                         list<Position> path = superArea.AStarPathfinding(turtlebotPos, goalPos, false);
@@ -335,19 +349,6 @@ namespace MarkersManager{
         superArea.ChangeCellState(avoidingInfo[i].upLeftIndex, (State)avoidingInfo[i].upLeftState);
         superArea.ChangeCellState(avoidingInfo[i].downRightIndex, (State)avoidingInfo[i].downRightState);
         superArea.ChangeCellState(avoidingInfo[i].downLeftIndex, (State)avoidingInfo[i].downLeftState);
-
-
-        // // //Get cell Id to draw in Rviz
-        // int cellId = superArea.GetCellId(avoidingInfo[i].cellPos);
-        // if(cellId != -1){ //If the cell has a valid Id
-        //     Index index = superArea.GetCellIndex(avoidingInfo[i].cellPos);
-        //     Index subAreaIndex = superArea.GetSubAreaIndex(index);
-        //     //Draw in Rviz
-        //     markers.CellMarkerUpdate(cellId, Free, avoidingInfo[i].cellPos, subAreaIndex, superArea.GetNumSubAreasSqrt());
-        // }
-        //  usleep(100);
-
-
         
         //UP
         int cellId = superArea.GetCellId(avoidingInfo[i].upIndex);
@@ -796,42 +797,48 @@ namespace MarkersManager{
         }
     }
 
-    void SpreadOut(){
+    void SpreadOut(Index goalIndex1, Index goalIndex2){
         //Start PSO
         Position goalPos = superArea.GetNearestCellAStar(TurtlebotManager::turtlebots[0]->GetPosition(), Unexplored);
         AStarPathInfo pathInfo;
         pathInfo = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[1]->GetPosition(), Unexplored, TurtlebotManager::GetOtherTurtlebotsPosition(1), false);
-        AStarPathInfo pathInfo2;
-        pathInfo2 = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[2]->GetPosition(), Unexplored, TurtlebotManager::GetOtherTurtlebotsPosition(2), false);
+        //AStarPathInfo pathInfo2;
+        //pathInfo2 = superArea.GetNearestCellAStarAnotherSubArea(TurtlebotManager::turtlebots[2]->GetPosition(), Unexplored, TurtlebotManager::GetOtherTurtlebotsPosition(2), false);
+
+
 
         TurtlebotManager::turtlebots[0]->NewMovement(traverse, goalPos);
 
-        if(pathInfo.cellPos.x != -1) { //Check if A* could find a cell in another subarea
-            //Set pathfinding variables
-            TurtlebotManager::turtlebots[1]->SetPathfinding(true);
-            TurtlebotManager::turtlebots[1]->SetPathfindingPoint(pathInfo.cellPos);
-            TurtlebotManager::turtlebots[1]->SetForcePathfind(true);
-            //Give the turtlebot movements
-            for (auto const& p : pathInfo.path) {
-                TurtlebotManager::turtlebots[1]->NewMovement(traverse, p); 
-            }
-            Index newSubArea = superArea.GetSubArea(pathInfo.cellPos);
-            cout << "[1] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+        goalPos = superArea.GetCellPosition(goalIndex1);
+
+        list<Position> path = superArea.AStarPathfinding(TurtlebotManager::turtlebots[1]->GetPosition(), goalPos, false); //Set to true to show path in terminal
+        //Set pathfinding variables
+        TurtlebotManager::turtlebots[1]->SetPathfinding(true);
+        TurtlebotManager::turtlebots[1]->SetPathfindingPoint(goalPos);
+        TurtlebotManager::turtlebots[1]->SetForcePathfind(true);
+        //Give the turtlebot movements
+        for (auto const& p : path) {
+            TurtlebotManager::turtlebots[1]->NewMovement(traverse, p); 
         }
 
- 
-        if(pathInfo2.cellPos.x != -1) { //Check if A* could find a cell in another subarea
-            //Set pathfinding variables
-            TurtlebotManager::turtlebots[2]->SetPathfinding(true);
-            TurtlebotManager::turtlebots[2]->SetPathfindingPoint(pathInfo2.cellPos);
-            TurtlebotManager::turtlebots[1]->SetForcePathfind(true);
-            //Give the turtlebot movements
-            for (auto const& p : pathInfo2.path) {
-                TurtlebotManager::turtlebots[2]->NewMovement(traverse, p); 
-            }
-            Index newSubArea = superArea.GetSubArea(pathInfo2.cellPos);
-            cout << "[2] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+        Index newSubArea = superArea.GetSubArea(goalPos);
+        cout << "[2] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+
+        goalPos = superArea.GetCellPosition(goalIndex2);
+
+        path = superArea.AStarPathfinding(TurtlebotManager::turtlebots[2]->GetPosition(), goalPos, false); //Set to true to show path in terminal
+        //Set pathfinding variables
+        TurtlebotManager::turtlebots[2]->SetPathfinding(true);
+        TurtlebotManager::turtlebots[2]->SetPathfindingPoint(goalPos);
+        TurtlebotManager::turtlebots[2]->SetForcePathfind(true);
+        //Give the turtlebot movements
+        for (auto const& p : path) {
+            TurtlebotManager::turtlebots[2]->NewMovement(traverse, p); 
         }
+
+        newSubArea = superArea.GetSubArea(goalPos);
+        cout << "[2] will traverse to SubArea:(" << newSubArea.x << " , " << newSubArea.y << ")" << endl;
+
     }
 
     void TestSpreadOut(){
@@ -872,7 +879,10 @@ int main(int argc, char *argv[])
     //Main loop
     Rate loop_rate(10);
 
-    MarkersManager::SpreadOut();
+    Index goalIndex1; goalIndex1.x = 24; goalIndex1.y = 3;
+    Index goalIndex2; goalIndex2.x = 11; goalIndex2.y = 16;
+
+    MarkersManager::SpreadOut(goalIndex1, goalIndex2);
 
   // MarkersManager::TestSpreadOut();
 
