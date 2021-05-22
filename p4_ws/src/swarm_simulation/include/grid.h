@@ -806,11 +806,16 @@ public:
 
 
     //Finds the nearest cell in another subArea
-    AStarPathInfo GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState, list<Position> otherTurtlebotsPositions, bool prioritizeEmptySubArea){
+    AStarPathInfo GetNearestCellAStarAnotherSubArea(Position sourcePos, State cellState, list<Position> otherTurtlebotsPositions, list<Position> otherTurtlebotsGoalPos, bool prioritizeEmptySubArea){
         //Find out which subareas the other turtlebots are in.
         list<Index> otherTurtlebotsSubareas;
         for(auto const& p : otherTurtlebotsPositions){
             otherTurtlebotsSubareas.push_back(GetSubArea(p));
+        }
+        //Find out which subareas the other turtlebots are moving to (using their goal position)
+        list<Index> otherTurtlebotsGoalSubareas;
+        for(auto const& p : otherTurtlebotsGoalPos){
+            otherTurtlebotsGoalSubareas.push_back(GetSubArea(p));
         }
 
         cout << "Get nearest cell in another SubArea" << endl;
@@ -820,15 +825,25 @@ public:
             for (int c = 0; c < cols; c++){
                 if (grid[r][c] == cellState){
                     if (CompareSubAreas(sourcePos, gridPositions[r][c]) == false){ //Check if in another subarea
-                        //If prioritize empty subareas
                         bool canCheckThisCell = true;
                         if(prioritizeEmptySubArea == true){
+                            //Only find other subareas that are empty (there are no other turtlebots in the subarea)
                             for(auto const& p : otherTurtlebotsSubareas){
                                 Index i; i.x = r; i.y = c;
                                 if(p.x == GetSubAreaIndex(i).x && p.y == GetSubAreaIndex(i).y)
                                     canCheckThisCell = false;
                             }
+                            //Oly find other subareas that another turtlebot isn't moving towards to
+                            for(auto const& p : otherTurtlebotsGoalSubareas){
+                                Index i; i.x = r; i.y = c;
+                                if(p.x == GetSubAreaIndex(i).x && p.y == GetSubAreaIndex(i).y)
+                                    canCheckThisCell = false;
+                            }   
                         }
+                        
+                    
+
+
                         if(canCheckThisCell){
 
                            // Index startPosIndex = GetNearestCellIndex(sourcePos, Unexplored, Free, false);
@@ -873,9 +888,9 @@ public:
         AStarPathInfo pathInfo;
 
         //If we could not find any cells (Possibility of there only being subareas left WITH other turtlebots.)
-        if(shortestPathSize == 0){
-            pathInfo = GetNearestCellAStarAnotherSubArea(sourcePos, cellState, otherTurtlebotsPositions, false);
-        }
+       // if(shortestPathSize == 0){
+       //     pathInfo = GetNearestCellAStarAnotherSubArea(sourcePos, cellState, otherTurtlebotsPositions, false);
+       // }
 
         //Print the path
         /*cout << "Nearest Cell in another sub area using AStar: " << endl;
