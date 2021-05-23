@@ -36,4 +36,17 @@ Try "gazebo velodyne.world --verbose" in new terminal
 <- plot_modeling ->
 * Generates the plots used in report
 
+## TOA and DOA implementation
+### TOA implementation
+<- threeChannelMAIN -> 
+* Runs the test
+
+### DOA implementation
+<- ThreeMicrophoneV2-> 
+* Runs the test
+
+
+
+
+
 
