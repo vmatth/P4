@@ -27,3 +27,13 @@ export GAZEBO_MODEL_PATH=$HOME/P4/velodyne_plugin/models:$GAZEBO_MODEL_PATH
 Try "gazebo velodyne.world --verbose" in new terminal
 
 
+
+
+## Probe signal test
+<- main -> 
+* Runs the test
+
+<- plot_modeling ->
+* Generates the plots used in report
+
+
