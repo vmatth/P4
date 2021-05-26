@@ -195,7 +195,7 @@ void Markers::RobotMarker(Position robotPos, int robotId)
     //robotMarker.color.g = 0.05;
     //robotMarker.color.b = 0.05;
 
-    robotMarker.lifetime = ros::Duration(3);
+    robotMarker.lifetime = ros::Duration(1);
 
     robotMarker_pub.publish(robotMarker);
 }

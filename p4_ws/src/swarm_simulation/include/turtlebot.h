@@ -365,22 +365,17 @@ void Turtlebot::odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 }
 
 void Turtlebot::rangeCallback (const std_msgs::Float64MultiArray::ConstPtr& msg){   //Callback function that is called each time range is updated
-   // ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
+    //ROS_INFO("ROBOT: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
 
     //Each turtlebot has a specific id. Ex robot 0 has id 107.  bugTest = 17
-    if(id == 0 && msg->data[0] == 56){ //box world: 128. office = 107. newoffice 102. testBox 38. TOffice = 77. smallBox = 56. robust = 38
-        //ROS_INFO("ROBOT 0 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
-        range = msg->data[1];
-        angle = msg->data[2];
-        CalculateWall(msg->data[1], msg->data[2]);
+    if(id == 0 && msg->data[0] == 102){ //box world: 128. office = 107. newoffice 102. testBox 38. TOffice = 77. smallBox = 56. robust = 38. curveOffice 77
+        CalculateWall(msg->data[1]-0.1, msg->data[2]);
     }
-    else if(id == 1 && msg->data[0] == 1700){ //box world 1772. office = 1751. newoffice 1746. smallBox = 1700 = 1682
-        //ROS_INFO("ROBOT 1 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
-        CalculateWall(msg->data[1], msg->data[2]);
+    else if(id == 1 && msg->data[0] == 1746){ //box world 1772. office = 1751. newoffice 1746. smallBox = 1700 = 1682
+        CalculateWall(msg->data[1]-0.1, msg->data[2]);
     }
-    else if(id == 2 && msg->data[0] == 3344){ //box world 3416. office = 3395. newoffice 3390. smallBox = 3344 = 3326
-        //ROS_INFO("ROBOT 2 Id: [%f], Range: [%f], Angle: [%f]", msg->data[0], msg->data[1], msg->data[2]);
-        CalculateWall(msg->data[1], msg->data[2]);
+    else if(id == 2 && msg->data[0] == 3390){ //box world 3416. office = 3395. newoffice 3390. smallBox = 3344 = 3326
+        CalculateWall(msg->data[1]-0.1, msg->data[2]);
     }     
 }
 
