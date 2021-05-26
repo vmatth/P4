@@ -1,0 +1,157 @@
+if vinkel == pi/4 && xmic < 0 && ymic > 0 
+    backRotation = rotz(-vinkel);
+    textet = 'præcis 45.1 top';
+elseif vinkel == pi/4 && xmic < 0 && (vectormic1(1) < 0 && vectormic1(2) < 0) && Realvinkel==((7*pi)/4)
+    backRotation = rotz(-vinkel);
+    textet = 'præcis 45.1 venstre';
+elseif vinkel == pi/4 && xmic < 0 && (vectormic1(1) < 0 && vectormic1(2) < 0) && Realvinkel==pi/4
+    backRotation = rotz(vinkel);
+    textet = 'præcis 45.1 bund';
+elseif vinkel == pi/4 && xmic < 0
+    backRotation = rotz(vinkel);
+    textet = 'præcis 45.1';
+    elseif vinkel == pi/4 && xmic > 0 && ymic < 0 && (vectormic1(1) > 0 && vectormic1(2) < 0) && (xmic==xmicplot) && Realvinkel==((7*pi)/4)
+    backRotation = rotz(-vinkel);
+    textet = 'præcis 45.2 bund';
+elseif vinkel == pi/4 && xmic > 0 && ymic < 0
+    backRotation = rotz(vinkel);
+    textet = 'præcis 45.2';
+elseif vinkel == pi/4 && vectormic1(1) > 0 && vectormic1(2) > 0 && Realvinkel == pi/4
+    backRotation = rotz(vinkel);
+    textet = 'præcis 45.3 top';
+elseif vinkel == pi/4 && vectormic1(1) > 0 && vectormic1(2) > 0 && Realvinkel == ((7*pi)/4)
+    backRotation = rotz(-vinkel);
+    textet = 'præcis 45.3 højre';
+elseif vinkel == pi/4 && vectormic3(1) > 0 && vectormic3(1) > 0
+    backRotation = rotz(vinkel);
+    textet = 'præcis 45.4 top';
+elseif vinkel == pi/4 && vectormic2(1) > 0 && vectormic2(2) > 0
+    backRotation = rotz(vinkel);
+    textet = 'præcis 45.5';
+elseif vinkel == pi/4 && xmic > 0 && ymic > 0
+    backRotation = rotz(-vinkel);
+    textet = 'præcis 45.6';
+
+%BUND VENSTRE
+elseif (xmic==xmicplot) && (xmic>0 && ymic<0) && ((vectormic1(1)>0 && vectormic1(2)>0) || (vectormic2(1)<0 && vectormic2(2)>0) || (vectormic3(1)<0 && vectormic3(2)<0) || (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(-vinkel);
+    textet = 'Bund venstre';
+%BUND Højre
+elseif (xmic==xmicplot) && (xmic<0 && ymic<0) && ((vectormic1(1)>0 && vectormic1(2)>0) || (vectormic2(1)<0 && vectormic2(2)>0) || (vectormic3(1)<0 && vectormic3(2)<0) || (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(+vinkel);
+    textet = 'Bund højre';
+
+%Højre-side Venstre
+elseif (xmic<xmicplot) && (xmic>0 && ymic>0) && ((vectormic1(1)>0 && vectormic1(2)>0) || (vectormic2(1)<0 && vectormic2(2)>0) || (vectormic3(1)<0 && vectormic3(2)<0) || (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(-vinkel);
+    textet = 'Højre-side Venstre';
+%Højre-side højre
+elseif (xmic<xmicplot) && (xmic<0 && ymic>0) && ((vectormic1(1)>0 && vectormic1(2)>0) || (vectormic2(1)<0 && vectormic2(2)>0) || (vectormic3(1)<0 && vectormic3(2)<0) || (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(vinkel);
+    textet = 'Højre-side højre';
+    
+%Top Højre
+elseif (xmic==xmicplot) && (xmic<0 && ymic>0) && ((vectormic1(1)>0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(-vinkel);
+    textet = 'Top højre';
+%Top venstre
+elseif (xmic==xmicplot) && (xmic>0 && ymic>0) && ((vectormic1(1)>0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(vinkel);
+    textet = 'Top Venstre';
+    
+%Venstre-side venstre
+elseif (xmic>xmicplot) && (xmic<0 && ymic<0) && ((vectormic1(1)>0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(-vinkel);
+    textet = 'Venstre-side venstre';
+%Venstre-side højre
+elseif (xmic>xmicplot) && (xmic>0 && ymic<0) && ((vectormic1(1)>0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)<0))
+    backRotation = rotz(vinkel);
+    textet = 'Venstre-side højre';
+    
+%Bund V2
+elseif (xmic==xmicplot) && (xmic>0 && ymic<0) && ((vectormic1(1)<0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)>0))
+    backRotation = rotz(-vinkel);
+    textet = 'Bund V2';
+%Bund v3
+elseif (xmic==xmicplot) && (xmic>0 && ymic<0) && ((vectormic1(1)<0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)>0))
+    backRotation = rotz(-vinkel);
+    textet = 'Bund V3';
+%Bund v4
+elseif (xmic==xmicplot) && (xmic>0 && ymic<0) && ((vectormic1(1)>0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)<0))
+    backRotation = rotz(-vinkel);
+    textet = 'Bund V4';
+%Bund H2
+elseif (xmic==xmicplot) && (xmic<0 && ymic<0) && ((vectormic1(1)<0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)>0))
+    backRotation = rotz(vinkel);
+    textet = 'Bund H2';
+%Bund H3
+elseif (xmic==xmicplot) && (xmic<0 && ymic<0) && ((vectormic1(1)<0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)>0))
+    backRotation = rotz(vinkel);
+    textet = 'Bund H3';
+%Bund H4
+elseif (xmic==xmicplot) && (xmic<0 && ymic<0) && ((vectormic1(1)>0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)<0))
+    backRotation = rotz(vinkel);
+    textet = 'Bund H4';
+%Højre V2
+elseif (xmic<xmicplot) && (xmic>0 && ymic>0) && ((vectormic1(1)<0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)>0))
+    backRotation = rotz(-vinkel);
+    textet = 'Højre V2';
+
+%Højre v3
+elseif (xmic<xmicplot) && (xmic>0 && ymic>0) && ((vectormic1(1)<0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)>0))
+    backRotation = rotz(-vinkel);
+    textet = 'Højre V3';
+%Højre v4
+elseif (xmic<xmicplot) && (xmic>0 && ymic>0) && ((vectormic1(1)>0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)<0))
+    backRotation = rotz(-vinkel);
+    textet = 'Højre V4';
+%Højre H2
+elseif (xmic<xmicplot) && (xmic<0 && ymic>0) && ((vectormic1(1)<0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)>0))
+    backRotation = rotz(vinkel);
+    textet = 'Højre H2';
+%Højre H3
+elseif (xmic<xmicplot) && (xmic<0 && ymic>0) && ((vectormic1(1)<0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)>0))
+    backRotation = rotz(vinkel);
+    textet = 'Højre H3';
+%Højre H4
+elseif (xmic<xmicplot) && (xmic<0 && ymic>0) && ((vectormic1(1)>0 && vectormic1(2)<0) && (vectormic2(1)>0 && vectormic2(2)>0) && (vectormic3(1)<0 && vectormic3(2)>0) && (vectormic4(1)<0 && vectormic4(2)<0))
+    backRotation = rotz(vinkel);
+    textet = 'Højre H4';
+    
+%Top H2
+elseif (xmic==xmicplot) &&(xmic<0 && ymic>0) && ((vectormic1(1)<0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)>0))
+    backRotation = rotz(-vinkel);
+    textet = 'Top H2';
+
+%Top V2
+
+%Venstre V2
+elseif (xmic>xmicplot) && (xmic<0 && ymic<0) && ((vectormic1(1)<0 && vectormic1(2)>0) && (vectormic2(1)<0 && vectormic2(2)<0) && (vectormic3(1)>0 && vectormic3(2)<0) && (vectormic4(1)>0 && vectormic4(2)>0))
+    backRotation = rotz(-vinkel);
+    textet = 'Venstre V2';
+
+%Vesntre H2
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+elseif vectormic3(1) == 0 && vectormic3(2) > 0
+    backRotation = rotz(pi/4-vinkel);
+    textet = 'venstre for loudspeaker top1';
+elseif xmic > 0 || xmic == 0 && ymic > 0 && vectormic2(1) > 0 && (xmic<=xmicplot && xmic<abs(ymic))
+    backRotation = rotz(vinkel);
+    textet = 'højre for loudspeaker top';
+elseif xmic > 0 || xmic == 0 && ymic > 0 && vectormic2(1) > 0
+    backRotation = rotz(vinkel);
+    textet = 'højre for loudspeaker top';
+elseif xmic > 0 || xmic == 0
+    backRotation = rotz(-pi/4+vinkel);
+    textet = 'højre for loudspeaker';
+elseif xmic < 0 && ymic >= 0
+    backRotation = rotz(-vinkel);
+    textet = 'venstre for loudspeaker top';
+elseif (vectormic3(1) < 0 && vectormic3(2) < 0) || (vectormic2(1) < 0 && vectormic2(2) < 0) || (vectormic1(1) < 0 && vectormic1(2) < 0) || (vectormic4(1) < 0 && vectormic4(2) < 0)
+    backRotation = rotz(-vinkel);
+    textet = 'venstre for loudspeaker venstre-side';
+elseif xmic < 0
+    backRotation = rotz(pi/4-vinkel);
+    textet = 'venstre for loudspeaker bund';
+end
