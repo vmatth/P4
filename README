@@ -24,7 +24,9 @@ export GAZEBO_MODEL_PATH=$HOME/P4/velodyne_plugin/models:$GAZEBO_MODEL_PATH
 
 (Your directory can be different depending on where the P4 folder is located)
 
-Try "gazebo velodyne.world --verbose" in new terminal
+To run the simulation:
+Run "roslaunch swarm_simulation simulation.launch"
+Run "rosrun swarm_simulation main_node" in a new terminal
 
 
 
